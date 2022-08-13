@@ -12,7 +12,7 @@ val applicationMainClass = "TemplateProgramKt"
 /**  ## additional ORX features to be added to this project */
 val orxFeatures = setOf(
 //  "orx-boofcv",
-//  "orx-camera",
+    "orx-camera",
 //  "orx-chataigne",
     "orx-color",
     "orx-compositor",
@@ -28,12 +28,12 @@ val orxFeatures = setOf(
     "orx-image-fit",
 //  "orx-integral-image",
 //  "orx-interval-tree",
-//  "orx-jumpflood",
+    "orx-jumpflood",
 //  "orx-kdtree",
 //  "orx-keyframer",      
 //  "orx-kinect-v1",
 //  "orx-kotlin-parser",
-//  "orx-mesh-generators",
+    "orx-mesh-generators",
 //  "orx-midi",
 //  "orx-minim",
 //  "orx-no-clear",
@@ -41,10 +41,10 @@ val orxFeatures = setOf(
 //  "orx-obj-loader",
     "orx-olive",
 //  "orx-osc",
-//  "orx-palette",
+    "orx-palette",
     "orx-panel",
-//  "orx-parameters",
-//  "orx-poisson-fill",
+    "orx-parameters",
+    "orx-poisson-fill",
 //  "orx-rabbit-control",
 //  "orx-realsense2",
 //  "orx-runway",
@@ -54,9 +54,9 @@ val orxFeatures = setOf(
 //  "orx-syphon",
 //  "orx-temporal-blur",
 //  "orx-tensorflow",    
-//  "orx-time-operators",
+    "orx-time-operators",
 //  "orx-timer",
-//  "orx-triangulation",
+    "orx-triangulation",
 //  "orx-video-profiles",
     null
 ).filterNotNull()
@@ -101,9 +101,10 @@ repositories {
 dependencies {
 
 //    implementation(libs.jsoup)
-//    implementation(libs.gson)
+      implementation(libs.gson)
 //    implementation(libs.csv)
 
+    implementation(kotlin("reflect"))
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlin.logging)
 
