@@ -1,7 +1,9 @@
+import com.google.gson.Gson
 import org.openrndr.Program
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
+import org.openrndr.extensions.Screenshots
 import org.openrndr.extra.color.fettepalette.generateColorRamp
 import org.openrndr.extra.fx.distort.FluidDistort
 import org.openrndr.extra.fx.distort.Perturb
@@ -12,27 +14,33 @@ import org.openrndr.extra.noise.simplex
 import org.openrndr.extra.parameters.DoubleParameter
 import org.openrndr.extra.parameters.IntParameter
 import org.openrndr.extra.timeoperators.TimeOperators
-import org.openrndr.extras.camera.Orbital
+import org.openrndr.ffmpeg.ScreenRecorder
+import org.openrndr.math.IntVector2
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import org.openrndr.poissonfill.PoissonFill
 import org.openrndr.shape.Rectangle
+import java.io.File
+import java.io.FileReader
 
 fun main() = application {
     configure {
         width = 1080 / 2
         height = 1920 / 2
+        //position = IntVector2(1300, -1280)
+        hideWindowDecorations = true
+        windowAlwaysOnTop = true
     }
     program {
 
-        var showTitle = true
-        var showColorRamp = true
+        var showTitle = false
+        var showColorRamp = false
 
+        var parametersPath = "data/new/parameters/3A0bbb8c8b-2126-45ab-8da7-20b8c0f496a4.json"
 
         class Director {
 
             val gui = GUI(baseColor = ColorRGBa.GRAY.shade(0.3))
-
             val colors = listOf(
                 "#FF4D00",
                 "#91EE9A",
@@ -104,7 +112,9 @@ fun main() = application {
             }.addTo(gui, "FX")
 
 
-            // EFFECTS
+            val ecosystem = Ecosystem(gui, drawer.bounds)
+
+
             val cellsRt = renderTarget(width, height, multisample = BufferMultisample.SampleCount(8)) {
                 colorBuffer()
                 depthBuffer()
@@ -118,12 +128,7 @@ fun main() = application {
             val poisson = PoissonFill()
             val fd = FluidDistort()
 
-
-
-            val ecosystem = Ecosystem(gui, drawer.bounds)
-
             fun draw() {
-                Random.resetState()
 
                 val palette = generateColorRamp(
                     total = 3,
@@ -144,6 +149,7 @@ fun main() = application {
 
                 drawer.clear(palette[2][0])
                 ecosystem.draw(drawer, seconds, palette)
+
 
                 // revert to orthographic projection and apply post-fx
                 drawer.defaults()
@@ -206,17 +212,27 @@ fun main() = application {
                 }
             }
         }
-
-
         val director = Director()
 
+        //extend(ScreenRecorder())
         extend(TimeOperators()) {
             track(director.ecosystem.lfo)
         }
         extend(director.ecosystem.orb)
-        extend(director.gui)
+        val g = extend(director.gui)
+        g.loadParameters(File(parametersPath))
+        extend(Screenshots()) {
+/*            afterScreenshot.listen {
+                val id = uuids[currentIndex]
+                println("$currentIndex,  $id")
+
+                g.saveParameters(File("data/parameters/$id.json"))
+                currentIndex++
+            }*/
+        }
 
         extend {
+            g.visible = mouse.position.x < 200.0
             director.draw()
         }
     }

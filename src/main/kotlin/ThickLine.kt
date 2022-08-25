@@ -6,6 +6,7 @@ import org.openrndr.extra.noise.Random
 import org.openrndr.extra.noise.simplex
 import org.openrndr.extra.parameters.DoubleParameter
 import org.openrndr.math.Vector3
+import org.openrndr.shape.Path3D
 import kotlin.math.PI
 import kotlin.math.cos
 
@@ -15,7 +16,7 @@ class ThickLine(gui: GUI) {
     var rowVb: VertexBuffer? = null
     private var columnContours = object {
 
-        @DoubleParameter("Thickness", 1.0, 10.0)
+        @DoubleParameter("Thickness", 0.0, 20.0)
         var thickness = 0.5
 
         @DoubleParameter("Pen pressure", 0.0, 1.0)
@@ -30,7 +31,7 @@ class ThickLine(gui: GUI) {
     }.addTo(gui, "ThickLine / Vertical")
     private var rowContours = object {
 
-        @DoubleParameter("Thickness", 1.0, 10.0)
+        @DoubleParameter("Thickness", 0.0, 20.0)
         var thickness = 0.5
 
         @DoubleParameter("Pen pressure", 0.0, 1.0)
@@ -46,9 +47,11 @@ class ThickLine(gui: GUI) {
 
 
     fun write(t: Double, vertexes: List<Vector3>, nSegments: Int, palette: List<List<ColorRGBa>>, isRow: Boolean) {
+        Random.resetState()
 
-        val tone1 = palette[Random.int(0, 2)][Random.int(1, 3)]
-        val tone2 = palette[Random.int(0, 2)][Random.int(1, 3)]
+
+        val tone1 = if (isRow) palette[0][1] else palette[1][2]
+        val tone2 = if (isRow) palette[1][1] else palette[2][2]
 
 
         var tempBuffer = vertexBuffer(vertexFormat {
