@@ -1,5 +1,5 @@
 enableFeaturePreview("VERSION_CATALOGS")
-rootProject.name = "openrndr-template"
+rootProject.name = "oracle-covergen"
 
 val openrndrUseSnapshot = true
 val orxUseSnapshot = true
@@ -9,8 +9,8 @@ dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
             version("kotlin", "1.6.10")
-            version("openrndr", if (openrndrUseSnapshot) "0.5.1-SNAPSHOT" else "0.4.0-rc.7")
-            version("orx", if (orxUseSnapshot) "0.5.1-SNAPSHOT" else "0.4.0-rc.8")
+            version("openrndr", if (openrndrUseSnapshot) "0.5.1-SNAPSHOT" else "0.4.1")
+            version("orx", if (orxUseSnapshot) "0.5.1-SNAPSHOT" else "0.4.1")
             version("orml", if (ormlUseSnapshot) "0.5.1-SNAPSHOT" else "0.4.0")
 
             plugin("kotlin-jvm", "org.jetbrains.kotlin.jvm").version("1.6.10")

@@ -220,7 +220,7 @@ fun main() = application {
         }
         extend(director.ecosystem.orb)
         val g = extend(director.gui)
-        g.loadParameters(File(parametersPath))
+        //g.loadParameters(File(parametersPath))
         extend(Screenshots()) {
 /*            afterScreenshot.listen {
                 val id = uuids[currentIndex]
