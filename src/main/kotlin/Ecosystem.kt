@@ -12,10 +12,7 @@ import org.openrndr.extra.parameters.IntParameter
 import org.openrndr.extra.parameters.XYParameter
 import org.openrndr.extra.timeoperators.LFO
 import org.openrndr.extra.camera.Orbital
-import org.openrndr.math.Polar
-import org.openrndr.math.Vector2
-import org.openrndr.math.Vector3
-import org.openrndr.math.clamp
+import org.openrndr.math.*
 import org.openrndr.math.transforms.frustum
 import org.openrndr.math.transforms.transform
 import org.openrndr.shape.Rectangle
@@ -38,8 +35,8 @@ class Ecosystem (gui: GUI, val frame: Rectangle){
     }.addTo(gui, "Camera Settings")
     private val ecosystemSliders = object {
 
-        @IntParameter("N Structures", 1, 120)
-        var nStructures = 1
+        @DoubleParameter("Complexity", 0.05, 1.0)
+        var complexity = 0.0
 
         @DoubleParameter("Angle", 0.0, 360.0)
         var angle = 0.0
@@ -76,14 +73,15 @@ class Ecosystem (gui: GUI, val frame: Rectangle){
     val dryResolved = colorBuffer(frame.width.toInt(), frame.height.toInt())
 
 
-
     fun draw(drawer: Drawer, seconds: Double, palette: List<List<ColorRGBa>>){
+        Random.resetState()
 
-        // the higher the nStructures, the lower the complexity
-        val complexity = (1.0 / ecosystemSliders.nStructures).clamp(0.05, 1.0)
+        val nStructures = (smoothstep(0.6, 1.0, ecosystemSliders.complexity) * 70 + 1).toInt()
+        val complexity = (1.0 / nStructures).clamp(0.05, 1.0)
 
-        val positions = (0 until ecosystemSliders.nStructures).map {
-            val pos = Random.point(frame.offsetEdges(40.0)).mix(frame.center, it.toDouble() / ecosystemSliders.nStructures.toDouble())
+        val positions = (0 until nStructures).map {
+            val pos = Random.point(frame.offsetEdges(40.0)).mix(frame.center, it.toDouble() / nStructures.toDouble())
+
             val angle = Random.double(130.0)
             pos to angle
         }
@@ -93,6 +91,10 @@ class Ecosystem (gui: GUI, val frame: Rectangle){
         drawer.rotate(Vector3.UNIT_X, 180.0)
         drawer.translate(-frame.center)
 
+        if(nStructures > 1) {
+            drawer.depthWrite = false
+            drawer.depthTestPass = DepthTestPass.ALWAYS
+        }
 
         for((pos, angle) in positions) {
 
@@ -109,7 +111,7 @@ class Ecosystem (gui: GUI, val frame: Rectangle){
 
                 drawer.translate(fixedPos.x, fixedPos.y, sin(fixedPos.x) * frame.height)
 
-                if(ecosystemSliders.nStructures > 1) { // ecosystem movement
+                if(nStructures > 1) { // ecosystem movement
                     val attractor =  ecosystemSliders.attractorPos * Vector2(frame.width, frame.height) + frame.center
                     val angleToCenter = Math.toDegrees(atan2(fixedPos.y - attractor.y, fixedPos.x -  attractor.x))
                     val randomAngle =  angle * ecosystemSliders.randomAngle
@@ -130,6 +132,6 @@ class Ecosystem (gui: GUI, val frame: Rectangle){
         }
         dry.colorBuffer(0).copyTo(dryResolved)
 
-
+        drawer.defaults()
     }
 }
