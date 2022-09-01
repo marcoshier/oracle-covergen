@@ -72,7 +72,7 @@ class ThickLine(gui: GUI) {
                     val color = tone1.mix(tone2, pc)
                     val turbulence = (simplex(435, vertex * turbulenceScale + t * turbulenceScale) * 0.5 + 0.5) * turbulenceAmount
                     val pp = thickness * cos(pc * PI * 2) * penPressure
-                    val finalStrokeWeight = thickness - pp - (thickness / 2 * turbulence)
+                    val finalStrokeWeight = thickness - pp - (turbulence * thickness / 2)
 
                     val vertex1 = if(isRow) vertex.copy(y = vertex.y - (rowContours.thickness * finalStrokeWeight))
                                   else vertex.copy(x = vertex.x - (columnContours.thickness * finalStrokeWeight))
