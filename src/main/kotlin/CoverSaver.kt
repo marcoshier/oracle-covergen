@@ -20,9 +20,9 @@ import java.io.File
 
 fun main() = application {
     configure {
-        width = 1080 / 2
-        height = 1920 / 2
-        position = IntVector2(0, 0)
+        width = 1080
+        height = 1920
+        position = IntVector2(2450, -1980)
         hideWindowDecorations = true
         windowAlwaysOnTop = false
     }
@@ -35,15 +35,15 @@ fun main() = application {
 
         val gui = GUI(baseColor = ColorRGBa.fromHex("#7a1414").shade(0.3))
         val colors = listOf(
-            "#FF4D00",
-            "#91EE9A",
-            "#000DFF",
-            "#76645A",
-            "#9990FF",
-            "#A3DEFF",
-            "#F5C5CB",
-            "#FDFF9B",
-            "#11132E",
+            "#F2602B",
+            "#C197FB",
+            "#59DD9F",
+            "#EDF63B",
+            "#3566EC",
+            "#6E5544",
+            "#C2EFF2",
+            "#EFCA64",
+            "#141414",
             "#FDFDFD"
         ).map { ColorRGBa.fromHex(it).toHSVa() }
 
