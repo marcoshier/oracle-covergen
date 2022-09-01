@@ -23,16 +23,37 @@ class Structure(gui: GUI) {
         var heightSegments = 100
 
 
-        @DoubleParameter("Width", 5.0, 750.0)
+        @DoubleParameter("Width", 5.0, 400.0)
         var width = 540.0
 
         @IntParameter("Width / Rotation Segments", 10, 100)
         var rotationSegments = 100
 
+
+        @DoubleParameter("Noise", 0.0, 1.0)
+        var noise = 0.5
+
+        @DoubleParameter("Noise Scale", 0.0, 0.1)
+        var noiseScale = 0.1
+
+        @DoubleParameter("Noise Frequency", 0.0, 0.5)
+        var noiseFrequency = 0.005
+
+
     }.addTo(gui, "Structure")
     private val vertebraeSliders = object {
         @DoubleParameter("Visibility", 0.05, 1.0)
         var visibility = 0.5
+
+        @DoubleParameter("Contour noise", 0.1, 1.0)
+        var cNoise = 0.05
+
+        @DoubleParameter("Contour noise frequency", 0.0, 0.02)
+        var cNoiseFreq = 0.01
+
+        @DoubleParameter("Contour offset", 0.0, 0.1)
+        var cOffset = 0.01
+
 
         @DoubleParameter("Wave amount", 0.0, 1.0)
         var waveAmount = 1.0
@@ -45,15 +66,6 @@ class Structure(gui: GUI) {
 
         @DoubleParameter("Wave phase", 0.01, 1.0)
         var wavePhase = 0.05
-
-        @DoubleParameter("Noise", 0.0, 1.0)
-        var noise = 0.5
-
-        @DoubleParameter("Noise Scale", 0.0, 1.0)
-        var noiseScale = 0.5
-
-        @DoubleParameter("Noise Frequency", 0.0, 0.5)
-        var noiseFrequency = 0.005
 
 
     }.addTo(gui, "Vertebrae")
@@ -69,8 +81,13 @@ class Structure(gui: GUI) {
 
     private val thickLine = ThickLine(gui)
 
+    var width = structureSliders.width
+    var height = structureSliders.height
 
     fun draw(drawer: Drawer, t: Double, lfo: LFO, complexity: Double, dimensions: Double = 2.0, palette: List<List<ColorRGBa>>) {
+
+            height = structureSliders.height
+            width = structureSliders.height
 
             val rows = mutableListOf<List<Vector3>>()
 
@@ -97,13 +114,13 @@ class Structure(gui: GUI) {
 
                     val width = mix(1.0, waveforms[slider], vertebraeSliders.waveAmount) * structureSliders.width
                     val contour = Circle(0.0, 0.0, width.coerceAtLeast(10.0)).contour
-                    val sM = simplex(398, yOffset * 0.001 + t * 0.005) * 0.5 + 0.5
-                    val subbedContour = contour.sub( sM * t * 0.075, sM * t * 0.075 + vertebraeSliders.visibility)
+                    val sM = simplex(398, yOffset * 0.001 + t * vertebraeSliders.cNoiseFreq) * vertebraeSliders.cNoise
+                    val subbedContour = contour.sub(sM + (t * vertebraeSliders.cOffset * vertebraeSliders.cNoise), sM + vertebraeSliders.visibility + (t * vertebraeSliders.cOffset  * vertebraeSliders.cNoise))
 
 
                     val row = subbedContour.equidistantPositions(rotationSegments).mapIndexed { i, it ->
-                        val scale = 0.01 * vertebraeSliders.noiseScale
-                        val n = (simplex(2844, it.x * scale, it.y * scale, t * 0.005 + y * vertebraeSliders.noiseFrequency) * 0.5 + 0.5) * vertebraeSliders.noise
+                        val scale = 0.01 * structureSliders.noiseScale
+                        val n = (simplex(2844, it.x * scale, it.y * scale, t * 0.5 + y * structureSliders.noiseFrequency) * 0.5 + 0.5) * structureSliders.noise
                         val n2 = simplex(394, i * 0.009 + y * 0.05) * 20.0
                         it.mix(Vector2.ZERO, n).vector3(y = yOffset + n2, z = it.y * (dimensions - 2.0))
                     }
@@ -169,22 +186,6 @@ class Structure(gui: GUI) {
                                     }
                                 }
                             }
-                        2 -> drawer.rectangles { // do it with vertexbuffer?
-                                for(row in rows){
-                                    for(vertex in row) {
-
-                                        val n = simplex(244, vertex.x * 0.003 + t * 0.3, vertex.y * 0.004 + t * 0.33) * 0.5 + 0.5
-                                        val mn = n * 10.0 * cellSliders.corners
-
-                                        this.fill = palette[0][0].mix(palette[0][0], n)
-
-                                        this.rectangle(Rectangle(vertex.xy, 8.0,  cellSliders.corners * 20.0))
-                                    }
-                                }
-                            }
-
-
-
                     }
                 }
             }

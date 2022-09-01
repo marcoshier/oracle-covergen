@@ -1,3 +1,4 @@
+import com.google.gson.Gson
 import kotlinx.coroutines.yield
 import org.openrndr.Program
 import org.openrndr.application
@@ -20,12 +21,13 @@ import org.openrndr.math.smoothstep
 import org.openrndr.poissonfill.PoissonFill
 import org.openrndr.shape.Rectangle
 import java.io.File
+import java.io.FileReader
 
 fun main() = application {
     configure {
         width = 1080 / 2
         height = 1920 / 2
-        position = IntVector2(2550, -2180)
+        //position = IntVector2(2550, -2180)
         hideWindowDecorations = true
         windowAlwaysOnTop = false
     }
@@ -34,7 +36,6 @@ fun main() = application {
         var showTitle = false
         var showColorRamp = false
         var coverSaver = false
-
 
         val gui = GUI(baseColor = ColorRGBa.fromHex("#7a1414").shade(0.3))
 
@@ -107,9 +108,11 @@ fun main() = application {
             ).map { ColorRGBa.fromHex(it).toHSVa() }
             val current = colors[colorSliders.centerHue]
 
-            val lights = (1..3).map { current.shiftHue(-4.0 * it).shade(1.1 + 0.65 * it).toRGBa() }
-            val baseColors = (0..2).map { current.shiftHue(-8.0 * it).toRGBa() }
-            val darks = (1..3).map { current.shade(1.0 - 0.425 * it).toRGBa() }
+            val saturation = 1.1
+
+            val lights = (1..3).map { current.shiftHue(-6.0 * it).shade(1.0 + 0.15 * it).saturate(saturation  -0.4).toRGBa() }
+            val baseColors = (0..2).map { current.shade(1.1 - 0.3 * (it + 1)).shiftHue(-8.0 * it).saturate(saturation).toRGBa() }
+            val darks = (1..3).map { current.shade(1.0 - 0.425 * it).saturate(saturation - 0.4).toRGBa() }
 
             val lightContrasted = (lights.asReversed() zip darks.asReversed()).map {
                 it.first.mix(it.second, colorSliders.contrastReversal)
@@ -144,6 +147,23 @@ fun main() = application {
         extend(ecosystem.orb)
         val g = extend(gui)
 
+        class Entry(val type:String, val name:String, var ogdata:Map<String, String> = emptyMap())
+        val uuids = Gson().fromJson(FileReader(File("data/RandomPicked2.json")),Array<Entry>::class.java).toList().map {
+            it.ogdata["uuid"]
+        }
+
+        var currentIndex = 0
+        val sc = extend(Screenshots()) {
+
+
+            afterScreenshot.listen {
+
+                g.saveParameters(File("data/new-protovisuals/parameters/${uuids[currentIndex]}.json"))
+                println("$currentIndex,  ${uuids[currentIndex]}")
+                currentIndex++
+            }
+        }
+
         if(coverSaver) {
             val s = extend(Screenshots())
             val folders = File("data/new/interpolated/").listFiles().toList()
@@ -176,12 +196,15 @@ fun main() = application {
 
         extend {
 
+            sc.name = "data/new-protovisuals/images/${uuids[currentIndex]}.png"
+
             g.visible = mouse.position.x < 200.0
 
             val palette = generatePalette()
             drawer.clear(palette[2][0])
 
-            ecosystem.draw(drawer, seconds, palette)
+            val maxSpeed = 0.8
+            ecosystem.draw(drawer, seconds * maxSpeed, palette)
 
             // effects
             var active = cbs.perturbed
