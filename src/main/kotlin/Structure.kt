@@ -16,14 +16,14 @@ class Structure(gui: GUI) {
 
     private val structureSliders = object {
 
-        @DoubleParameter("Height", 5.0, 1920.0)
+        @DoubleParameter("Height", 5.0, 1200.0)
         var height = 640.0
 
         @IntParameter("Height Segments", 10, 250)
         var heightSegments = 100
 
 
-        @DoubleParameter("Width", 5.0, 1080.0)
+        @DoubleParameter("Width", 5.0, 750.0)
         var width = 540.0
 
         @IntParameter("Width / Rotation Segments", 10, 100)
@@ -141,6 +141,7 @@ class Structure(gui: GUI) {
                 drawer.isolated {
                     drawer.depthWrite = false
                     drawer.depthTestPass = DepthTestPass.ALWAYS
+
                     when (cellSliders.cellType) {
                         0 -> drawer.circles {
                                 for(row in rows){

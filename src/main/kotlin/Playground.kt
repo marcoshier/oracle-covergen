@@ -4,8 +4,6 @@ import org.openrndr.application
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.extensions.Screenshots
-import org.openrndr.extra.color.fettepalette.Curve
-import org.openrndr.extra.color.fettepalette.Lamé
 import org.openrndr.extra.color.fettepalette.generateColorRamp
 import org.openrndr.extra.fx.distort.FluidDistort
 import org.openrndr.extra.fx.distort.Lenses
@@ -16,6 +14,7 @@ import org.openrndr.extra.parameters.DoubleParameter
 import org.openrndr.extra.parameters.IntParameter
 import org.openrndr.extra.timeoperators.TimeOperators
 import org.openrndr.launch
+import org.openrndr.math.IntVector2
 import org.openrndr.math.Vector2
 import org.openrndr.math.smoothstep
 import org.openrndr.poissonfill.PoissonFill
@@ -26,39 +25,19 @@ fun main() = application {
     configure {
         width = 1080 / 2
         height = 1920 / 2
-        //position = IntVector2(1300, -1280)
-        hideWindowDecorations = false
+        position = IntVector2(2550, -2180)
+        hideWindowDecorations = true
         windowAlwaysOnTop = false
     }
     program {
 
         var showTitle = false
-        var showColorRamp = true
+        var showColorRamp = false
         var coverSaver = false
 
 
         val gui = GUI(baseColor = ColorRGBa.fromHex("#7a1414").shade(0.3))
-        val colors = listOf(
-            "#FF4D00",
-            "#91EE9A",
-            "#000DFF",
-            "#76645A",
-            "#9990FF",
-            "#A3DEFF",
-            "#F5C5CB",
-            "#FDFF9B",
-            "#11132E",
-            "#FDFDFD"
-        ).map { ColorRGBa.fromHex(it).toHSVa() }
 
-        val colorSliders = object {
-            @IntParameter("Main Hue", 0, 9)
-            var centerHue = 0
-
-            @DoubleParameter("Contrast Reversal", 0.0, 1.0)
-            var contrastReversal = 0.0
-
-        }.addTo(gui, "Color Settings")
         val fxSliders = object {
 
             @DoubleParameter("FX Amount", 0.0, 1.0)
@@ -105,30 +84,44 @@ fun main() = application {
             var fd = 0.0
 
         }.addTo(gui, "FX")
+        val colorSliders = object {
+            @IntParameter("Main Hue", 0, 7)
+            var centerHue = 0
+
+            @DoubleParameter("Contrast Reversal", 0.0, 1.0)
+            var contrastReversal = 0.0
+
+        }.addTo(gui, "Color Settings")
 
         fun generatePalette(): List<List<ColorRGBa>> {
 
-            return generateColorRamp(
-                total = 3,
-                centerHue = colors[colorSliders.centerHue].h,
-                hueCycle = 0.0,
-                offsetTint = 0.4,
-                offsetShade = 0.18,
-                curveAccent = 0.0,
-                tintShadeHueShift = 0.05,
-                useOK = true
-            ).run {
+            val colors = listOf(
+                "#F2602B",
+                "#C197FB",
+                "#59DD9F",
+                "#EDF63B",
+                "#3566EC",
+                "#6E5544",
+                "#C2EFF2",
+                "#EFCA64"
+            ).map { ColorRGBa.fromHex(it).toHSVa() }
+            val current = colors[colorSliders.centerHue]
 
-                val lights = (lightColors.asReversed() zip darkColors).map {
-                    it.first.mix(it.second, colorSliders.contrastReversal)
-                }
+            val lights = (1..3).map { current.shiftHue(-4.0 * it).shade(1.1 + 0.65 * it).toRGBa() }
+            val baseColors = (0..2).map { current.shiftHue(-8.0 * it).toRGBa() }
+            val darks = (1..3).map { current.shade(1.0 - 0.425 * it).toRGBa() }
 
-                val darks = (lightColors.asReversed() zip darkColors).map {
-                    it.second.mix(it.first, colorSliders.contrastReversal)
-                }
-
-                listOf(lights, baseColors, darks)
+            val lightContrasted = (lights.asReversed() zip darks.asReversed()).map {
+                it.first.mix(it.second, colorSliders.contrastReversal)
             }
+
+            val darkContrasted = (lights.asReversed() zip darks.asReversed()).map {
+                it.second.mix(it.first, colorSliders.contrastReversal)
+            }
+
+
+            return listOf(lightContrasted, baseColors, darkContrasted)
+
         }
 
         val ecosystem = Ecosystem(gui, drawer.bounds)
@@ -190,10 +183,9 @@ fun main() = application {
 
             ecosystem.draw(drawer, seconds, palette)
 
+            // effects
             var active = cbs.perturbed
-
             val smoothFxAmount = smoothstep(0.55, 1.0, fxSliders.fxAmount)
-
             fxs.perturb.run {
                 radius = fxSliders.radius * smoothFxAmount
                 offset = Vector2.ONE + seconds * fxSliders.velocity * smoothFxAmount
@@ -224,8 +216,8 @@ fun main() = application {
                 }
             }
 
-            drawer.image(active)
 
+            drawer.image(active)
 
 
             if(showColorRamp) {
