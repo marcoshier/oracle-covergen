@@ -243,6 +243,8 @@ class Openrndr {
             maven(url = "https://maven.openrndr.org")
         }
         dependencies {
+            implementation("org.bytedeco:tensorflow-lite:2.8.0-1.5.7")
+            implementation("org.bytedeco:tensorflow-lite:2.8.0-1.5.7:linux-x86_64")
             runtimeOnly(openrndr("gl3"))
             runtimeOnly(openrndrNatives("gl3"))
             implementation(openrndr("openal"))
