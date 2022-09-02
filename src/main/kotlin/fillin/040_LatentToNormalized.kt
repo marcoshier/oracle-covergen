@@ -36,9 +36,7 @@ fun main() {
 
             val outputTensor = interpreter.typed_output_tensor_float(0)
             val normalized = (0 until dimensions).map { outputTensor.get(it.toLong()) }
-            for (i in 0 until dimensions) {
-                val v = outputTensor.get(i.toLong())
-            }
+
             writer.write(normalized.joinToString(","))
             writer.newLine()
 

@@ -1,4 +1,5 @@
 package fillin
 
-val dimensions = 45
+val protoJsonPath = "data/new-protovisuals/parameters"
+val dimensions = 47
 val latentDimensions = 2

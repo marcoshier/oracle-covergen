@@ -16,7 +16,7 @@ fun distance(a: DoubleArray, b: DoubleArray): Double {
         val d = a[i] * b[i]
         sum += d
     }
-    return acos(sum) / Math.PI
+    return acos(sum) / (Math.PI*0.5)
 
 }
 
@@ -47,7 +47,7 @@ fun main() {
     }
 
 
-    val prototypeIndices = File("offline-data/resolved/prototypes.csv").readLines().map {
+    val prototypeIndices = File("offline-data/resolved/proto-row-idx.csv").readLines().map {
         it.toInt()
     }
 
@@ -58,9 +58,13 @@ fun main() {
     println(prototypes.size)
 
     println("finding distances")
-    File("offline-data/resolved/prototype-distances.csv").bufferedWriter().use { writer ->
+    File("offline-data/resolved/prototype-weights.csv").bufferedWriter().use { writer ->
         embedding.forEach { e ->
-            val line = prototypes.map { p -> exp(-distance(e, p)*10.0) }.toList().joinToString(", ")
+            val weights = prototypes.map { p -> exp(-distance(e, p)*1.0) }
+            val sorted = prototypes.map { p -> exp(-distance(e, p)*1.0) }.sortedDescending()
+            val t = sorted[2]
+
+            val line = prototypes.mapIndexed { index, p -> weights[index].let { if (it > t) it else 0.0 } }.toList().joinToString(", ")
 
             writer.write(line)
             writer.newLine()
