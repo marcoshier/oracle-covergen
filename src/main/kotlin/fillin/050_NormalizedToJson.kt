@@ -12,7 +12,7 @@ fun main() {
     var line = 0
     File("offline-data/resolved/cover-normalized.csv").reader().forEachLine {
         val values = it.split(",").map { it.toDouble() }
-        val map = normalizedVectorToMap(templateJson,values)
+        val map = normalizedVectorToMap(templateJson, values)
         File("offline-data/resolved/json/${String.format("%06d", line)}.json").writeText(Gson().toJson(map))
 
         line++
