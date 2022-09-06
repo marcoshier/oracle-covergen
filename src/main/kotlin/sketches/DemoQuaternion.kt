@@ -27,10 +27,9 @@ fun main() {
         }
         program {
             program.window.presentationMode = PresentationMode.MANUAL
-            val cube = boxMesh(0.1, 0.1, 0.1)
             //val positions = (0 until 100000).map { Spherical(Double.uniform(-180.0, 180.0), Double.uniform(-180.0, 180.0), 10.0 + Double.uniform(0.0, 2.0)) }
 
-             val points = csvReader().readAllWithHeader(File("offline-data/graph/graph-tsne-d-100-i-100-p25-v2.csv")).map {
+             val points = csvReader().readAllWithHeader(File("data/graph-tsne-d-100-i-100-p25-v2.csv")).map {
                  Vector2(it["x"]!!.toDouble(), it["y"]!!.toDouble())
              }
             val bounds = points.bounds

@@ -3,19 +3,13 @@ package demonstrator
 import classes.Entry
 import com.github.doyaaaaaken.kotlincsv.client.CsvReader
 import com.google.gson.Gson
-import org.openrndr.KEY_SPACEBAR
-import org.openrndr.MouseEventType
-import org.openrndr.animatable.Animatable
-import org.openrndr.animatable.easing.Easing
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
-import org.openrndr.extra.fx.blend.Overlay
 import org.openrndr.extra.kdtree.kdTree
 import org.openrndr.ffmpeg.ScreenRecorder
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
-import org.openrndr.math.transforms.transform
 import org.openrndr.shape.Rectangle
 import org.openrndr.shape.bounds
 import org.openrndr.shape.map
@@ -23,64 +17,54 @@ import textSandbox.Coverlay
 import textSandbox.Section
 import java.io.File
 import java.io.FileReader
-import kotlin.math.PI
-import kotlin.math.sin
 
 fun main() = application {
     configure {
-        width = 1600
-        height = 1000
+        width = 960 + 540
+        height = 960
     }
     program {
-
         val skipPoints = 142082
+
         val articleData = Gson().fromJson(FileReader(File("data/mapped-v2r1.json")),Array<Entry>::class.java)
         val entries = articleData.map {
             listOf(it.ogdata["Title"], it.ogdata["Author"], it.ogdata["Faculty"], it.ogdata["Department"], it.ogdata["Date"]) as List<String>
         }.drop(skipPoints)
-
-        println(articleData.indexOfFirst { it.ogdata.isNotEmpty() })
-
-        val latent = CsvReader().readAll(File("offline-data/resolved/cover-latent.csv"))
-        var latentPoints = latent.map {
-            Vector2(it[0].toDouble(), it[1].toDouble())
-        }.drop(skipPoints)
-        val lb = latentPoints.bounds
-        latentPoints = latentPoints.map { it.map(lb, Rectangle(0.0, 0.0, 1000.0, 1000.0)) }
-
-        val tiles = arrayTexture(4096,4096,66)
-
-        for (i in 0 until 66) {
-            println("loading image $i")
-            val image = loadImage("data/tiles-merged-128-v2/tiling-${String.format("%04d", i)}.png")
-
-            image.copyTo(tiles, i)
-            image.destroy()
+        val overlays = entries.mapIndexed { i, it ->
+            val initialFrame = Rectangle(0.0, 0.0, 540.0, 960.0)
+            val c = Coverlay(initialFrame, it).apply {
+                val s = Section(initialFrame)
+                subdivide(s)
+            }
+            c
         }
+
+
+        fun prepareTiles(n: Int = 66): ArrayTexture {
+            val tiles = arrayTexture(4096,4096,n)
+            for (i in 0 until n) {
+                println("loading image $i")
+                val image = loadImage("data/tiles-merged-128-v2/tiling-${String.format("%04d", i)}.png")
+
+                image.copyTo(tiles, i)
+                image.destroy()
+            }
+            return tiles
+        }
+        val tiles = prepareTiles(1)
 
         val csv = CsvReader().readAll(File("data/graph-tsne-d-100-i-100-p25-v2.csv")).drop(1)
         var points = csv.map {
             Vector2(it[0].toDouble(), it[1].toDouble())
         }.drop(skipPoints)
         val b = points.bounds
-        points = points.map { it.map(b, Rectangle(0.0, 0.0, 1000.0, 1000.0)) }
-
-        val overlays = entries.map {
-            val initialFrame = Rectangle(0.0, 0.0, 540.0, 960.0)
-            val c = Coverlay(initialFrame, it)
-            c.subdivide(Section(initialFrame))
-            c.unfold()
-            c
-        }
-
-
-        println(points.size)
+        points = points.map { it.map(b, Rectangle(0.0, 0.0, height * 1.0, height * 1.0)) }
 
         val tree = points.kdTree()
 
-        val nVertex = points.size
 
         // geometry
+        val nVertex = points.size
         val vb = vertexBuffer(vertexFormat {
             position(3)
             textureCoordinate(2)
@@ -97,45 +81,19 @@ fun main() = application {
             }
         }
 
-        // transforms
         val transforms = vertexBuffer(vertexFormat {
             //attribute("transform", VertexElementType.MATRIX44_FLOAT32)
-            attribute("position0", VertexElementType.VECTOR2_FLOAT32)
-            attribute("position1", VertexElementType.VECTOR2_FLOAT32)
-
+            attribute("position", VertexElementType.VECTOR2_FLOAT32)
         }, nVertex).apply {
             put {
                 for (pos in points.indices) {
                     write(points[pos])
-                    write(latentPoints[pos])
                 }
             }
         }
-
-/*        extend(ScreenRecorder()) {
-            maximumDuration = 15.0
-            frameRate = 60
-        }*/
-
-        val anim = object: Animatable() {
-            var k = 0.0
-        }
-
-        var dir = 1.0
-        keyboard.keyUp.listen {
-            if(it.key == KEY_SPACEBAR) {
-                anim.apply {
-                    animate(::k, dir, 6000, Easing.SineInOut).completed.listen {
-                        dir = 1.0 - dir
-                    }
-                }
-            }
-        }
-
 
         val imageState = object  {
-
-            var image: ColorBuffer? = null
+            var activeOverlay: Coverlay? = null
 
             var activeIndex: Int = -1
                 get() {
@@ -144,26 +102,32 @@ fun main() = application {
                 set(value) {
                     if (value != field) {
                         field = value
-                        image?.destroy()
                         if (value != -1) {
+                            activeOverlay = overlays[value]
+                            activeOverlay?.backgroundImage?.destroy()
                             val testFile = File("data/generated/${String.format("%06d", value + skipPoints)}.png")
                             if (testFile.exists()) {
-                                image = loadImage(testFile)
+                                //TODO there should be a 0.5s debounce or so before this happens
+                                activeOverlay!!.backgroundImage = loadImage(testFile)
+                                activeOverlay!!.unfold()
                             } else {
-                                image = null
+                                activeOverlay!!.backgroundImage = null
                             }
                         } else {
-                            image = null
+                            activeOverlay = null
                         }
                     }
                 }
 
         }
 
+        extend(ScreenRecorder()) {
+
+            maximumDuration = 15.0
+        }
 
         val c = extend(Camera2D())
         extend {
-            anim.updateAnimation()
             val cursorPosition = (c.view.inversed * mouse.position.xy01).div.xy
 
             val p = tree.findNearest(cursorPosition)
@@ -181,17 +145,10 @@ fun main() = application {
             drawer.fill = null
             drawer.rectangle(points.bounds)
 
-            drawer.stroke = null
-            drawer.fill = ColorRGBa.WHITE.opacify(0.25)
-
-
-            drawer.translate(drawer.bounds.center)
-            drawer.scale(1.0)
-            drawer.translate(-drawer.bounds.center)
-
             drawer.shadeStyle = shadeStyle {
                 vertexTransform = """
-                    x_position.xy = x_position.xy*1.0 + i_position0.xy * p_morph + i_position1.xy * (1.0 - p_morph);                        
+                    float scale = 1.0;
+                    x_position.xy = x_position.xy * scale + i_position.xy;                        
                 """
 
                 fragmentTransform = """
@@ -219,37 +176,19 @@ fun main() = application {
                     x_fill = c;
                 """.trimIndent()
 
-
-                val t = sin(seconds) * 0.5 + 0.5
-
                 parameter("tiles", tiles)
-                parameter("morph", anim.k)
             }
             drawer.vertexBufferInstances(listOf(vb), listOf(transforms), DrawPrimitive.TRIANGLE_STRIP, nVertex)
 
             drawer.defaults()
+            drawer.translate(960.0, 0.0)
             if(imageState.activeIndex != -1) {
-                if (imageState.image != null) {
-                    drawer.image(imageState.image!!, 1050.0, 0.0)
-                }
-                //println(imageState.activeIndex)
-                try {
-                    //println(overlays[imageState.activeIndex].data)
-
-                    drawer.fill = ColorRGBa.WHITE
-                    drawer.translate(1050.0, 0.0)
-                    val font = loadFont("data/fonts/default.otf", 34.0)
-                    drawer.fontMap = font
-                    drawer.writer {
-                        box = Rectangle(0.0, 0.0, 540.0, 960.0).offsetEdges(-15.0).scaledBy(0.7, 1.0, 0.0, 0.0)
-                        newLine()
-                        text(overlays[imageState.activeIndex].data[0])
+                if (imageState.activeOverlay != null) {
+                    try {
+                        overlays[imageState.activeIndex].draw(drawer)
+                    } catch(e:Throwable) {
+                        e.printStackTrace()
                     }
-                    overlays[imageState.activeIndex].draw(drawer)
-                } catch(e:Throwable) {
-
-
-                    e.printStackTrace()
                 }
             }
 
