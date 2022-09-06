@@ -11,3 +11,11 @@ data/xy-parameters/
 data/xyNew/
 data/mapped-v2r1.json
 data/RandomPicked2.json
+data/articles/
+/data/graph-tsne-i-100-p25.csv
+/offline-data/
+/data/graph-tsne-d-100-i-100-p25-v2.csv
+/data/generated/
+/data/new-protovisuals/
+/data/tiles-merged-128-v2/
+/offline-data/

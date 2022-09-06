@@ -14,7 +14,6 @@ fun main() {
         val values = it.split(",").map { it.toDouble() }
         val map = normalizedVectorToMap(templateJson, values)
         File("offline-data/resolved/json/${String.format("%06d", line)}.json").writeText(Gson().toJson(map))
-
         line++
     }
 }

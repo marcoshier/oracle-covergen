@@ -57,7 +57,7 @@ fun normalizedVectorToMap(json: String, values: List<Double>) : Map<String, Any>
             for (key2 in m.keys) {
                 val vm = m[key2] as MutableMap<String, Any>
                 if (vm.containsKey("intValue")) {
-                    vm["intValue"] = loadValue(vm["minValue"] as Double, vm["maxValue"] as Double)
+                    vm["intValue"] = loadValue(vm["minValue"] as Double, vm["maxValue"] as Double).toInt()
                 }
                 else if (vm.containsKey("doubleValue")) {
                     vm["doubleValue"] = loadValue(vm["minValue"] as Double, vm["maxValue"] as Double)

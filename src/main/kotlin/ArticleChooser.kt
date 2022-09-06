@@ -6,7 +6,7 @@ import tools.normalizedVectorToMap
 import java.io.File
 import java.io.FileReader
 
-class Entry(val type:String, val name:String, var ogdata:Map<String, String> = emptyMap())
+class Entry(val type:String, val name:String, var ogdata:Map<String, Any> = emptyMap())
 
 fun main() {
 
@@ -18,7 +18,7 @@ fun main() {
 
     val picked = (0..1000).map {
         Random.pick(file)
-    }.filter { it.ogdata["uuid"]!!.isNotEmpty()  }.distinct()
+    }.filter { (it.ogdata["uuid"]as String)!!.isNotEmpty()  }.distinct()
 
     println(picked.size)
 
