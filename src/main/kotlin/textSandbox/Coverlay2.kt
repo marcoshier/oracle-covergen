@@ -8,22 +8,31 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.extra.color.spaces.toOKLABa
 import org.openrndr.extra.shadestyles.LinearGradientOKLab
-import org.openrndr.math.IntVector2
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
 import java.io.File
 
+val fontList = listOf(
+    loadFont("data/fonts/IBMPlexSans-SemiBold.otf", 46.0), // title
+    loadFont("data/fonts/IBMPlexSans-Text.otf", 26.0), // Authors
+    loadFont("data/fonts/IBMPlexSans-Medium.otf", 26.0), // Faculty
+    loadFont("data/fonts/IBMPlexSans-Text.otf", 18.0), // Dept
+    loadFont("data/fonts/IBMPlexSans-Text.otf", 18.0), // Date
+)
 
 class Section(val rect: Rectangle, val direction: Int = 0): Animatable() {
 
     var currentIndex = 0
     var animatedRect = rect
     var k = 0.0
+    var font = fontList[direction]
 
     fun unfold(index: Int) {
-        currentIndex = index
-        val delay = (index * 100).toLong()
-        animate(::k, 1.0, 1650, Easing.CubicInOut, predelayInMs = delay)
+        animate(::k, 0.0, 0).completed.listen {
+            currentIndex = index
+            val delay = (index * 200).toLong()
+            animate(::k, 1.0, 1650, Easing.CubicInOut, predelayInMs = 400 + delay)
+        }
     }
 
     private fun dynamicRect(parent: Rectangle): Rectangle {
@@ -47,46 +56,40 @@ class Section(val rect: Rectangle, val direction: Int = 0): Animatable() {
             drawer.drawStyle.blendMode = BlendMode.MULTIPLY
             drawer.stroke = null
             drawer.rectangle(animatedRect)
-
         }
 
         drawer.fill = ColorRGBa.WHITE.opacify(k)
-        val lineHeight = when (direction) {
-            1 -> 26.0
-            2 -> 24.0
-            3 -> 18.0
-            4 -> 12.0
-            else -> 16.0
-        }
-        val yOffset = 15.0
-        val font = loadFont("data/fonts/default.otf", lineHeight)
         drawer.fontMap = font
+
+        // not working :(
+        //drawer.drawStyle.clip = animatedRect
+        val offset = 20.0
         drawer.writer {
-            box = rect.offsetEdges(-10.0)
-            if(childRect != null) {
-                box = when (direction) {
-                    1 -> Rectangle(rect.x + childRect.width, rect.y  + yOffset, rect.width - childRect.width, rect.height)
-                    2 -> Rectangle(rect.x, rect.y + childRect.height  + yOffset, rect.width, rect.height - childRect.height)
-                    3 -> Rectangle(rect.x, rect.y  + yOffset, rect.width - childRect.width, rect.height)
-                    4 -> Rectangle(rect.x, rect.y, rect.width - childRect.width, rect.height)
-                    else -> box.offsetEdges(-10.0)
-                }.offsetEdges(-5.0)
-            }
-            println(text)
+            val childWidth = childRect?.width ?: 0.0
+            val childHeight = childRect?.height ?: 0.0
+            box = when (direction) {
+                1 -> Rectangle(rect.x + childWidth + 5.0, rect.y  + offset, rect.width - childWidth - 20.0, rect.height)
+                2 -> Rectangle(rect.x, rect.y + childHeight  + offset, rect.width, rect.height - childHeight)
+                3 -> Rectangle(rect.x + 5.0, rect.y + offset, rect.width - childWidth, rect.height)
+                4 -> Rectangle(rect.x + 5.0, rect.y  + offset, rect.width - childWidth, rect.height)
+                else -> box.offsetEdges(-10.0)
+            }.offsetEdges(-5.0)
             text(text.trimIndent())
         }
+
+        //drawer.drawStyle.clip = null
 
     }
 
 }
 
 class Coverlay(val initialFrame: Rectangle, val data: List<String>) {
+    private val initialK = 0.575 // Space for title
 
     var subdivisionsLeft = 4
     var allSections = mutableListOf<Section>()
     var currentDirection = 1
-    val initialK = 0.575 // Space for title
-
+    var backgroundImage: ColorBuffer? = null
 
     fun subdivide(frame: Section) {
 
@@ -94,21 +97,24 @@ class Coverlay(val initialFrame: Rectangle, val data: List<String>) {
             currentDirection = 1
         }
 
-        when(currentDirection) {
-            1 -> frame.rect.sub(0.0, 0.0, 1.0, 1.0 - initialK).movedBy(Vector2(0.0, initialK * frame.rect.height))
-            2 -> frame.rect.sub(0.0, 0.0, 1.0 - initialK, 1.0).movedBy(Vector2(0.0, 0.0))
-            3 -> frame.rect.sub(0.0, 0.0, 1.0, 1.0 - initialK).movedBy(Vector2(0.0, 0.0))
-            4 -> frame.rect.sub(0.0, 0.0, initialK, 1.0).movedBy(Vector2((1.0 - initialK) * frame.rect.width, 0.0))
-            else -> frame.rect
-        }.also {
-            val newSect = Section(it, currentDirection)
-            allSections.add(newSect)
+        if(data[currentDirection] != "") {
 
-            subdivisionsLeft--
+            when(currentDirection) {
+                1 -> frame.rect.sub(0.0, 0.0, 1.0, 1.0 - initialK).movedBy(Vector2(0.0, initialK * frame.rect.height))
+                2 -> frame.rect.sub(0.0, 0.0, 1.0 - initialK, 1.0).movedBy(Vector2(0.0, 0.0))
+                3 -> frame.rect.sub(0.0, 0.0, 1.0, 1.0 - initialK).movedBy(Vector2(0.0, 0.0))
+                4 -> frame.rect.sub(0.0, 0.0, initialK, 1.0).movedBy(Vector2((1.0 - initialK) * frame.rect.width, 0.0))
+                else -> frame.rect
+            }.also {
+                val newSect = Section(it, currentDirection)
+                allSections.add(newSect)
 
-            if(subdivisionsLeft > 0) {
-                currentDirection++
-                subdivide(newSect)
+                subdivisionsLeft--
+
+                if(subdivisionsLeft > 0) {
+                    currentDirection++
+                    subdivide(newSect)
+                }
             }
         }
 
@@ -122,10 +128,24 @@ class Coverlay(val initialFrame: Rectangle, val data: List<String>) {
 
     fun draw(drawer: Drawer) {
 
+        if(backgroundImage != null) {
+            drawer.image(backgroundImage!!)
+        } else {
+            drawer.clear(ColorRGBa.PINK)
+        }
+
+        drawer.fill = ColorRGBa.WHITE
+        drawer.fontMap = fontList[0]
+        drawer.writer {
+            box = initialFrame.offsetEdges(-20.0).scaledBy(0.64, 1.0, 0.0, 0.0)
+            gaplessNewLine()
+            text(data[0])
+        }
+
         allSections.forEachIndexed { i, section ->
             val parent = if(i == 0) initialFrame else allSections[i - 1].animatedRect
             val child = if(i == allSections.size - 1) null else allSections[i + 1].animatedRect
-            section.draw(drawer, parent, child, data[i])
+            section.draw(drawer, parent, child, data[i + 1])
         }
 
     }
@@ -147,7 +167,8 @@ fun main() = application {
         }
         val initialFrame = Section(drawer.bounds.offsetEdges(-40.0))
 
-        val overlay = Coverlay(initialFrame.rect, data[currentIndex].drop(1)).apply {
+        val testImage = loadImage("data/generated/142082.png")
+        val overlay = Coverlay(testImage.bounds, data[currentIndex].drop(1)).apply {
             subdivide(initialFrame) // recursive
             unfold()
         }
@@ -159,17 +180,6 @@ fun main() = application {
             drawer.rectangle(initialFrame.rect)
 
             overlay.draw(drawer)
-
-
-            drawer.fill = ColorRGBa.WHITE
-            val font = loadFont("data/fonts/default.otf", 25.0)
-            drawer.fontMap = font
-            drawer.writer {
-                box = initialFrame.rect.offsetEdges(-20.0).scaledBy(0.7, 1.0, 0.0, 0.0)
-                newLine()
-                text(data[currentIndex][0])
-                //text(data[currentIndex][1])
-            }
         }
     }
 }

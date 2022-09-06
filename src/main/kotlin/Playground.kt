@@ -1,11 +1,9 @@
-import com.google.gson.Gson
 import kotlinx.coroutines.yield
 import org.openrndr.Program
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.extensions.Screenshots
-import org.openrndr.extra.color.fettepalette.generateColorRamp
 import org.openrndr.extra.fx.distort.FluidDistort
 import org.openrndr.extra.fx.distort.Lenses
 import org.openrndr.extra.fx.distort.Perturb
@@ -15,13 +13,11 @@ import org.openrndr.extra.parameters.DoubleParameter
 import org.openrndr.extra.parameters.IntParameter
 import org.openrndr.extra.timeoperators.TimeOperators
 import org.openrndr.launch
-import org.openrndr.math.IntVector2
 import org.openrndr.math.Vector2
 import org.openrndr.math.smoothstep
 import org.openrndr.poissonfill.PoissonFill
 import org.openrndr.shape.Rectangle
 import java.io.File
-import java.io.FileReader
 
 fun main() = application {
     configure {
@@ -35,7 +31,7 @@ fun main() = application {
 
         var showTitle = false
         var showColorRamp = false
-        var coverSaver = true
+        var coverSaver = false
 
         val gui = GUI(baseColor = ColorRGBa.fromHex("#7a1414").shade(0.3))
 
@@ -147,21 +143,6 @@ fun main() = application {
         extend(ecosystem.orb)
         val g = extend(gui)
 
-        class Entry(val type:String, val name:String, var ogdata:Map<String, String> = emptyMap())
-        val uuids = Gson().fromJson(FileReader(File("data/RandomPicked2.json")),Array<Entry>::class.java).toList().map {
-            it.ogdata["uuid"]
-        }
-/*  var currentIndex = 200
-        val sc = extend(Screenshots()) {
-
-
-            afterScreenshot.listen {
-
-                g.saveParameters(File("data/new-protovisuals/parameters/${uuids[currentIndex]}.json"))
-                println("$currentIndex,  ${uuids[currentIndex]}")
-                currentIndex++
-            }
-        }*/
 
         val s = extend(Screenshots())
         if(coverSaver) {
