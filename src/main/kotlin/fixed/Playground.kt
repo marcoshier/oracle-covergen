@@ -1,3 +1,5 @@
+package fixed
+
 import com.google.gson.Gson
 import kotlinx.coroutines.yield
 import org.openrndr.Program
@@ -35,7 +37,7 @@ fun main() = application {
 
         var showTitle = false
         var showColorRamp = false
-        var coverSaver = true
+        var coverSaver = false
 
         val gui = GUI(baseColor = ColorRGBa.fromHex("#7a1414").shade(0.3))
 
@@ -147,21 +149,6 @@ fun main() = application {
         extend(ecosystem.orb)
         val g = extend(gui)
 
-        class Entry(val type:String, val name:String, var ogdata:Map<String, String> = emptyMap())
-        val uuids = Gson().fromJson(FileReader(File("data/RandomPicked2.json")),Array<Entry>::class.java).toList().map {
-            it.ogdata["uuid"]
-        }
-/*  var currentIndex = 200
-        val sc = extend(Screenshots()) {
-
-
-            afterScreenshot.listen {
-
-                g.saveParameters(File("data/new-protovisuals/parameters/${uuids[currentIndex]}.json"))
-                println("$currentIndex,  ${uuids[currentIndex]}")
-                currentIndex++
-            }
-        }*/
 
         val s = extend(Screenshots())
         if(coverSaver) {
