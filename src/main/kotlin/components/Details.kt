@@ -10,6 +10,23 @@ import kotlin.math.abs
 
 
 class Details(val drawer: Drawer, val model: DataModel) {
+    class Fade : Animatable() {
+        var opacity = 0.0
+    }
+    val fade = Fade()
+
+    fun fadeIn() {
+        fade.apply {
+            ::opacity.animate(1.0, 500, Easing.CubicInOut)
+        }
+    }
+
+    fun fadeOut() {
+        fade.apply {
+            ::opacity.animate(0.0, 500, Easing.CubicInOut)
+        }
+    }
+
     class Cover : Animatable() {
         var width = 0.0
         var height = 0.0
@@ -74,7 +91,6 @@ class Details(val drawer: Drawer, val model: DataModel) {
 
         }
 
-
         for (i in added) {
             val cover = covers.getOrPut(i) { Cover() }
 
@@ -95,6 +111,12 @@ class Details(val drawer: Drawer, val model: DataModel) {
     val font = loadFont("data/fonts/IBMPlexSans-Medium.otf", 24.0)
 
     fun draw() {
+        fade.updateAnimation()
+
+        if (fade.opacity < 0.5) {
+            return
+        }
+
 
         for (cover in covers.values) {
             cover.updateAnimation()
