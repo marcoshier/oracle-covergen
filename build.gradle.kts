@@ -52,7 +52,7 @@ val orxFeatures = setOf(
 //  "orx-shader-phrases",
     "orx-shapes",
 //  "orx-syphon",
-//  "orx-temporal-blur",
+    "orx-temporal-blur",
 //  "orx-tensorflow",    
     "orx-time-operators",
 //  "orx-timer",

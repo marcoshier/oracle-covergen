@@ -131,7 +131,7 @@ class Coverlay(val initialFrame: Rectangle, val data: List<String>) {
         if(backgroundImage != null) {
             drawer.image(backgroundImage!!)
         } else {
-            drawer.clear(ColorRGBa.PINK)
+            drawer.clear(ColorRGBa.TRANSPARENT)
         }
 
         drawer.fill = ColorRGBa.WHITE

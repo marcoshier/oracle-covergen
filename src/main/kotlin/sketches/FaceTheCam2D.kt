@@ -121,11 +121,6 @@ fun main() = application {
 
         }
 
-        extend(ScreenRecorder()) {
-
-            maximumDuration = 15.0
-        }
-
         val c = extend(Camera2D())
         extend {
             val cursorPosition = (c.view.inversed * mouse.position.xy01).div.xy
