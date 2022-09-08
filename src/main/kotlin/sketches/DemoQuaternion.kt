@@ -5,6 +5,7 @@ import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import components.*
 import extensions.QuaternionCamera
 import org.openrndr.application
+import org.openrndr.extensions.Screenshots
 import org.openrndr.ffmpeg.ScreenRecorder
 import org.openrndr.math.*
 import org.openrndr.shape.Rectangle
@@ -29,7 +30,7 @@ fun main() {
             val positions = latlon.map { Spherical(it.x, it.y, 10.0).cartesian }
             val dataModel = DataModel(positions)
 
-            extend(ScreenRecorder())
+            extend(Screenshots())
 
             val camera = extend(QuaternionCamera())
 
@@ -39,10 +40,15 @@ fun main() {
             val selector = SelectorWidget(drawer)
             val details = Details(drawer, dataModel)
 
+            val minimap = Minimap(drawer)
+            val minimapView = ViewBox(drawer, Vector2(0.0, height - 128.0), 128, 128) { minimap.draw() }
+
+
             camera.orientationChanged.listen {
                 if (!camera.zooming) {
                     dataModel.lookAt = (it.matrix.matrix44.inversed * Vector4(0.0, 0.0, -10.0, 1.0)).xyz
                 }
+                minimap.orientation = it
             }
             camera.zoomOutStarted.listen {
                 selector.fadeOut()
@@ -67,6 +73,7 @@ fun main() {
                 pointCloud.draw()
                 selector.draw()
                 details.draw()
+                minimapView.draw()
             }
         }
     }

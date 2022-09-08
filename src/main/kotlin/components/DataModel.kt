@@ -11,8 +11,8 @@ class DataModel(val points: List<Vector3>) {
     /**
      * The kd-tree for the points
      */
-    // this should be a kdtree over Pair<Vector3, Int>, where the Int is the index of the point in the points list
     val kdtree = points.kdTree()
+    val pointIndices = points.indices.map { Pair(points[it], it) }.associate { it }
 
     val activePointsChanged = Event<ActivePointsChangedEvent>()
 
@@ -32,13 +32,11 @@ class DataModel(val points: List<Vector3>) {
             }
         }
 
-    var selectionRadius = 0.2
+    var selectionRadius = 0.22
 
     fun findActivePoints(): List<Int> {
         return kdtree.findAllInRadius(lookAt, selectionRadius).map {
-            points.indexOf(it)
+            pointIndices[it] ?: error("point not found")
         }.sorted()
     }
-
-
 }
