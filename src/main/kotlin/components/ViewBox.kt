@@ -20,6 +20,7 @@ class ViewBox(val drawer: Drawer, val position: Vector2, val width:Int, val heig
         }
         drawer.isolated {
             drawer.defaults()
+            drawer.ortho(0.0, 2880.0+1080.0, 1920.0,0.0,-1.0, 1.0)
             drawer.image(target.colorBuffer(0), position)
         }
     }

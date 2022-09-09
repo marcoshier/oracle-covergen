@@ -16,7 +16,7 @@ import textSandbox.Section
 import java.io.File
 import java.io.FileReader
 
-class ActivePointsChangedEvent(val oldPoints: Set<Int>, val newPoints: Set<Int>)
+class ActivePointsChangedEvent(val oldPoints: List<Int>, val newPoints: List<Int>)
 
 val skipPoints = 142082
 
@@ -69,7 +69,7 @@ class DataModel {
     var activePoints: List<Int> = emptyList()
         set(value) {
             if (field != value) {
-                activePointsChanged.trigger(ActivePointsChangedEvent(field.toSet(), value.toSet()))
+                activePointsChanged.trigger(ActivePointsChangedEvent(field, value))
                 field = value
             }
         }
