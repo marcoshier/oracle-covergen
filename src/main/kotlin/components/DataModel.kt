@@ -18,8 +18,9 @@ import java.io.FileReader
 
 class ActivePointsChangedEvent(val oldPoints: Set<Int>, val newPoints: Set<Int>)
 
+val skipPoints = 142082
+
 class DataModel {
-    val skipPoints = 142082
 
     fun createPoints(): List<Vector3> {
         val pointsData = csvReader().readAllWithHeader(File("offline-data/graph/graph-tsne-d-100-i-100-p25-v2.csv")).drop(skipPoints).map {
