@@ -9,6 +9,9 @@ import org.openrndr.draw.isolated
 class SelectorWidget(val drawer: Drawer) : Animatable() {
     var opacity = 1.0
 
+    var radius = 200.0
+
+
     fun fadeIn() {
         this::opacity.animate(1.0, 500, Easing.CubicInOut)
     }
@@ -24,7 +27,7 @@ class SelectorWidget(val drawer: Drawer) : Animatable() {
             drawer.fill = null
             drawer.stroke = ColorRGBa.WHITE.opacify(opacity)
             drawer.strokeWeight = 3.0
-            drawer.circle(drawer.bounds.center, 100.0)
+            drawer.circle(drawer.bounds.center, radius)
         }
     }
 }

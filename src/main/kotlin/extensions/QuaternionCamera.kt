@@ -5,9 +5,11 @@ import org.openrndr.Program
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.easing.Easing
 import org.openrndr.draw.Drawer
+import org.openrndr.draw.isolated
 import org.openrndr.events.Event
 import org.openrndr.math.Quaternion
 import org.openrndr.math.Vector2
+import org.openrndr.math.mix
 import org.openrndr.math.transforms.perspective
 import kotlin.math.min
 
@@ -16,8 +18,8 @@ class QuaternionCamera : Extension {
 
     var dragStart = Vector2(0.0, 0.0)
 
-    var lastDragTime = 0.0
 
+    val minTravel = 400.0
 
     var zoomOutStarted: Event<Unit> = Event()
     var zoomInStarted: Event<Unit> = Event()
@@ -25,6 +27,7 @@ class QuaternionCamera : Extension {
 
     var orientationChanged: Event<Quaternion> = Event()
 
+    var buttonDown = false
 
     inner class Zoom: Animatable() {
         var dragCharge = 0.0
@@ -45,7 +48,7 @@ class QuaternionCamera : Extension {
         fun discharge() {
             dragChargeIncrement = 0.0
             cancel()
-            animate(::dragCharge, 0.0, (8500 * dragCharge).toLong(), Easing.QuadOut).completed.listen {
+            animate(::dragCharge, 0.0, (8500 * dragCharge).coerceAtMost(1000.0).toLong(), Easing.QuadOut).completed.listen {
                 zoomInFinished.trigger(Unit) }
         }
     }
@@ -56,37 +59,40 @@ class QuaternionCamera : Extension {
 
 
         program.mouse.buttonDown.listen {
-            println("buttonDown")
+            buttonDown = true
             zoom.cancel()
             dragStart = it.position
-            lastDragTime = program.seconds
             program.window.requestDraw()
         }
 
         program.mouse.dragged.listen {
-            println("dragged")
+            if (!buttonDown) {
+                return@listen
+            }
+
+            println("drag drag drag")
+            val sensity = mix(1.0/100.0, 1.0/10.0, zoom.dragCharge)
+
             orientation = Quaternion.fromAngles(
-                -it.dragDisplacement.x / 10.0,
-                -it.dragDisplacement.y / 10.0,
+                it.dragDisplacement.x * sensity,
+                it.dragDisplacement.y * sensity,
                 0.0
             ) * orientation
             orientationChanged.trigger(orientation)
 
-            lastDragTime = program.seconds
-
             val distance = (it.position - dragStart).length
-            if (distance > 100.0) {
-                zoom.dragChargeIncrement = (distance - 100.0) / 100000.0
+            if (distance > minTravel) {
+                zoom.dragChargeIncrement = (distance - minTravel) / 100000.0
             }
 
             zoom.cancel()
-            program.window.requestDraw()
         }
 
 
         program.mouse.buttonUp.listen {
+            buttonDown = false
+            println("up up up")
             zoom.discharge()
-            program.window.requestDraw()
         }
     }
 
@@ -96,11 +102,16 @@ class QuaternionCamera : Extension {
         zoom.update()
         drawer.pushTransforms()
         val fov = (zoom.dragCharge * 35.0 + 12.0).coerceAtMost(45.0)
-        drawer.projection = perspective(fov, drawer.width / drawer.height.toDouble(), 0.1, 50.0)
+        drawer.projection = perspective(fov, 2880.0/1920.0, 0.1, 50.0)
         drawer.view = orientation.matrix.matrix44
     }
 
     override fun afterDraw(drawer: Drawer, program: Program) {
         drawer.popTransforms()
+        drawer.isolated {
+            drawer.defaults()
+            drawer.text("charge: ${zoom.dragCharge}", 40.0, 40.0)
+            drawer.text("charge increment: ${zoom.dragChargeIncrement}", 40.0, 80.0)
+        }
     }
 }

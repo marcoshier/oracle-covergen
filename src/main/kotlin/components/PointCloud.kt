@@ -103,33 +103,34 @@ class PointCloud(val drawer: Drawer, positions: List<Vector3>) : Animatable() {
             out vec4 x_color;
         """.trimIndent()
         vertexTransform = """
-                       
-                    vec3 voffset = (x_viewMatrix * vec4(i_offset, 1.0)).xyz;
-                    
-                    
-                    x_viewMatrix = mat4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
-                    vec4 cp = x_projectionMatrix * vec4(voffset, 1.0);
-                    vec2 sp = cp.xy / cp.w;
-                    
-                    vec2 pp = (sp * 0.5 + 0.5) * vec2(1920.0, 1080.0);
+                        
+                        vec3 voffset = (x_viewMatrix * vec4(i_offset, 1.0)).xyz;
+                        
+                        
+                        x_viewMatrix = mat4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+                        vec4 cp = x_projectionMatrix * vec4(voffset, 1.0);
+                        vec2 sp = cp.xy / cp.w;
+                        
+                        vec2 pp = (sp * 0.5 + 0.5) * vec2(2880.0, 1920.0);
 
-                    float size = 0.05;
-                    float distance = length(pp-vec2(1920.0, 1080.0)/2.0);
-                    
-                    if (distance < 100.0) {
-                        size += smoothstep(100.0, 0.0, distance) * 0.02 * p_focusFactor;
-                        //x_color = vec4(1.0+p_focusFactor, 1.0+p_focusFactor, 1.0+p_focusFactor, 1.0);
-                        x_color = vec4(1.0, 1.0, 1.0, 1.0);
-                        x_color.a = 0.1;                        
-                    } else {
-                        x_color = vec4(1.0, 1.0, 1.0, 1.0);
-                    }
-                    
-                    x_position.xyz *= size;
-                    x_position.xyz += voffset;
-                   
-                    
-                """.trimIndent()
+                        float size = 0.01;
+                        float distance = length(pp-vec2(2880.0, 1920.0)/2.0);
+                        
+                        if (distance < 100.0) {
+                            size += smoothstep(100.0, 0.0, distance) * 0.02 * p_focusFactor;
+                            //x_color = vec4(1.0+p_focusFactor, 1.0+p_focusFactor, 1.0+p_focusFactor, 1.0);
+                            x_color = vec4(1.0, 1.0, 1.0, 1.0);
+                            x_color.a = 0.1;                        
+                        } else {
+                            x_color = vec4(1.0, 1.0, 1.0, 1.0);
+                        }
+                        
+                        x_position.xyz *= size;
+                        x_position.xyz += voffset;
+                        
+
+                        
+                    """.trimIndent()
 
         parameter("tiles", tiles)
         parameter("focusFactor", focusFactor)
