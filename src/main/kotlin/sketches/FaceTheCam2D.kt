@@ -1,3 +1,4 @@
+/*
 package demonstrator
 
 import classes.Entry
@@ -192,3 +193,4 @@ fun main() = application {
     }
 
 }
+*/
