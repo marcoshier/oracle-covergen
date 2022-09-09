@@ -8,10 +8,15 @@ import org.openrndr.extra.imageFit.imageFit
 import org.openrndr.internal.ColorBufferLoader
 import org.openrndr.internal.colorBufferLoader
 import org.openrndr.shape.Rectangle
+import textSandbox.Coverlay
+import textSandbox.Section
 import kotlin.math.abs
 
 
 class Details(val drawer: Drawer, val model: DataModel) {
+
+
+
     class Fade : Animatable() {
         var opacity = 0.0
     }
@@ -29,6 +34,8 @@ class Details(val drawer: Drawer, val model: DataModel) {
         }
     }
 
+
+
     class Cover : Animatable() {
         var width = 0.0
         var height = 0.0
@@ -38,38 +45,40 @@ class Details(val drawer: Drawer, val model: DataModel) {
         var dead = false
         var dummy = 0.0
         var proxy: ColorBufferProxy? = null
+        var coverlay: Coverlay? = null
+        var mainCoverZoom = 0.0
+
+        fun revealMain() {
+                ::mainCoverZoom.animate(1.0, 1400, Easing.QuadInOut).completed.listen {
+            }
+        }
+
+        fun hideMain() {
+            ::mainCoverZoom.animate(0.0, 1000, Easing.QuadInOut)
+        }
     }
 
     val covers = mutableMapOf<Int, Cover>()
 
-    fun updateActive(oldPoints: Set<Int>, newPoints: Set<Int>) {
-
+    fun updateActive(oldPoints: List<Int>, newPoints: List<Int>) {
 
         println("oldPoints: ${oldPoints.size}, newPoints: ${newPoints.size}")
 
         val removed = oldPoints subtract newPoints
         val added = newPoints subtract oldPoints
 
-
-
-        require((removed subtract added).size == removed.size)
-        require((added subtract removed).size == added.size)
-
-        println("removing ${removed.size} covers")
-        println("adding ${added.size} covers")
-
         for (i in removed) {
             covers[i]?.let { c ->
 
                 c.dead = false
-
+                c.removing = true
 
                 c.apply {
                     c.cancel()
-//                    c::width.cancel()
-//                    c::height.cancel()
-//                    c::dummy.cancel()
-                    //c::width.animate(0.0, 1500, Easing.CubicInOut)
+                    c::width.cancel()
+                    c::height.cancel()
+                    c::dummy.cancel()
+                    c::width.animate(0.0, 1500, Easing.CubicInOut)
                     c::height.animate(0.0, 1500, Easing.CubicInOut)
                     c::dummy.animate(1.0, 1500).completed.listen {
                         c.removing = false
@@ -83,20 +92,22 @@ class Details(val drawer: Drawer, val model: DataModel) {
 
             val ax = (index % 10) * 60.0 + 40.0
             val ay = (index / 10) * 60.0 + 40.0
+
             val cover = covers.getOrPut(i) { Cover() }
             cover.dead = false
 
-                cover.apply {
-                    cover::x.cancel()
-                    cover::y.cancel()
-                    val d = if (i in added) 1.0 else 1.0
-                    val dx = (abs(ax - cover.x) * d).toLong()
-                    val dy = (abs(ay - cover.y) * d).toLong()
+            cover.apply {
+                cover::x.cancel()
+                cover::y.cancel()
+                val d = if (i in added) 1.0 else 1.0
+                val dx = (abs(ax - cover.x) * d).toLong()
+                val dy = (abs(ay - cover.y) * d).toLong()
 
-                    cover::x.animate(ax, dx, Easing.QuadInOut)
-                    cover::x.complete()
-                    cover::y.animate(ay, dy, Easing.QuadInOut)
-                }
+                cover::x.animate(ax, dx, Easing.QuadInOut)
+                cover::x.complete()
+                cover::y.animate(ay, dy, Easing.QuadInOut)
+                cover::y.complete()
+            }
 
 
         }
@@ -105,23 +116,25 @@ class Details(val drawer: Drawer, val model: DataModel) {
 
             val cover = covers.getOrPut(i) { Cover() }
             cover.proxy = colorBufferLoader.loadFromUrl("file:data/generated/png/${skipPoints + i}.png")
-            cover.proxy!!.events.loaded.postpone = true
 
             cover.dead = false
             cover.removing = false
 
             cover.proxy!!.events.loaded.listen {
                 cover.width = 50.0
-                cover.height = 50.0
-/*                cover.apply {
-
+                cover.apply {
                     cover::height.cancel()
-                    cover.updateAnimation()
                     cover::height.animate(50.0, 500, Easing.CubicInOut)
-                }*/
+                }
             }
 
         }
+
+        val mainCover = covers[newPoints[0]]
+        if(oldPoints[0] != newPoints[0]) {
+            mainCover?.revealMain()
+        }
+
         covers.values.removeIf { it.dead }
     }
 
@@ -147,21 +160,16 @@ class Details(val drawer: Drawer, val model: DataModel) {
             drawer.fill = ColorRGBa.GREEN
             drawer.fontMap = font
 
-            drawer.drawStyle.blendMode = BlendMode.ADD
-            for (cover in covers.values.sortedBy { !it.removing }) {
+            for (cover in covers.values) {
                 val rect = Rectangle(cover.x - cover.width / 2.0, cover.y, cover.width, cover.height)
-                //drawer.rectangle(rect)
+                drawer.rectangle(rect)
 
 
                 val cb = cover.proxy?.colorBuffer
                 if(cb != null) {
-//                    if(cover.height != 50.0) {
-//                        error("FUCK")
-//                    }
                     drawer.imageFit(cb, rect)
                 }
             }
-            drawer.drawStyle.blendMode = BlendMode.BLEND
 
 //            drawer.text("hallo dan?", 40.0, 40.0)
 //            for ((index, i) in this@Details.model.activePoints.withIndex()) {

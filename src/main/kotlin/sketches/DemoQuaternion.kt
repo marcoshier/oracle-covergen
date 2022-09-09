@@ -16,8 +16,9 @@ import java.io.File
 fun main() {
     application {
         configure {
-            width = 1920
-            height = 1080
+            width = ((1920 / 2) * 3) / 2 + 1080/2
+            height = (1920) / 2
+
         }
         program {
             val dataModel = DataModel()
@@ -28,9 +29,15 @@ fun main() {
 
             val guides = SphericalGuides(drawer)
             val pointCloud = PointCloud(drawer, dataModel.points)
-
             val selector = SelectorWidget(drawer)
+            val smallScreenView = ViewBox(drawer, Vector2(0.0, 0.0), 2880, 1920) {
+                guides.draw()
+                pointCloud.draw()
+                selector.draw()
+            }
+
             val details = Details(drawer, dataModel)
+            val bigScreenView = ViewBox(drawer, Vector2(2880.0, 0.0), 1080, 1920) { details.draw() }
 
             val minimap = Minimap(drawer)
             val minimapView = ViewBox(drawer, Vector2(0.0, height - 128.0), 128, 128) { minimap.draw() }
@@ -61,10 +68,8 @@ fun main() {
             }
 
             extend {
-                guides.draw()
-                pointCloud.draw()
-                selector.draw()
-                details.draw()
+                smallScreenView.draw()
+                bigScreenView.draw()
                 minimapView.draw()
             }
         }
