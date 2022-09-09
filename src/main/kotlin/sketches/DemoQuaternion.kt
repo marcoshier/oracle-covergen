@@ -41,15 +41,20 @@ fun main() {
             val guides = SphericalGuides(drawer)
             val pointCloud = PointCloud(drawer, dataModel.points)
             val selector = SelectorWidget(drawer)
+            val miniDetails = MiniDetails(drawer, dataModel)
             val touchPoints = TouchPoints(drawer)
+            val facultyFilter = FacultyFilter(drawer)
             val smallScreenView = ViewBox(drawer, Vector2(0.0, 0.0), 2880, 1920) {
                 guides.draw()
                 pointCloud.draw()
                 selector.draw()
+                miniDetails.draw()
                 touchPoints.draw()
+                facultyFilter.draw()
             }
 
             val details = Details(drawer, dataModel.data)
+
             val bigScreenView = ViewBox(drawer, Vector2(2880.0, 0.0), 1080, 1920) { details.draw() }
 
             val minimap = Minimap(drawer)
@@ -68,16 +73,15 @@ fun main() {
                 touchPoints.dragged(it)
             }
 
-
-
             camera.orientationChanged.listen {
                 dataModel.lookAt = (it.matrix.matrix44.inversed * Vector4(0.0, 0.0, -10.0, 1.0)).xyz
                 minimap.orientation = it
             }
             camera.zoomOutStarted.listen {
                 selector.fadeOut()
+                miniDetails.fadeOut()
                 pointCloud.fadeOut()
-                guides.fadeIn()
+                facultyFilter.fadeOut()
                 // this is a bit of a hack to make sure the active points is emptied
                 dataModel.activePoints = emptyList()
                 details.fadeOut()
@@ -85,13 +89,15 @@ fun main() {
             camera.zoomInFinished.listen {
                 details.fadeIn()
                 selector.fadeIn()
+                miniDetails.fadeIn()
                 pointCloud.fadeIn()
-                guides.fadeOut()
+                facultyFilter.fadeIn()
                 // this is a bit of a hack to make sure active points are updated, it doesn't work though?
                 camera.orientationChanged.trigger(camera.orientation)
             }
             dataModel.activePointsChanged.listen {
                 details.updateActive(it.oldPoints, it.newPoints)
+                miniDetails.updateActive(it.oldPoints, it.newPoints)
             }
 
             extend {
