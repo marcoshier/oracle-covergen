@@ -53,7 +53,7 @@ fun main() = application {
         }
         val tiles = prepareTiles(1)
 
-        val csv = CsvReader().readAll(File("data/graph-tsne-d-100-i-100-p25-v2.csv")).drop(1)
+        val csv = CsvReader().readAll(File("offline-data/graph/graph-tsne-d-100-i-100-p25-v2.csv")).drop(1)
         var points = csv.map {
             Vector2(it[0].toDouble(), it[1].toDouble())
         }.drop(skipPoints)
@@ -121,12 +121,8 @@ fun main() = application {
 
         }
 
-        extend(ScreenRecorder()) {
-
-            maximumDuration = 15.0
-        }
-
         val c = extend(Camera2D())
+        println(entries[0])
         extend {
             val cursorPosition = (c.view.inversed * mouse.position.xy01).div.xy
 

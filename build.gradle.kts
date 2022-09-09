@@ -45,14 +45,14 @@ val orxFeatures = setOf(
     "orx-panel",
     "orx-parameters",
     "orx-poisson-fill",
-//  "orx-rabbit-control",
+    "orx-rabbit-control",
 //  "orx-realsense2",
 //  "orx-runway",
     "orx-shade-styles",
 //  "orx-shader-phrases",
     "orx-shapes",
 //  "orx-syphon",
-//  "orx-temporal-blur",
+    "orx-temporal-blur",
 //  "orx-tensorflow",    
     "orx-time-operators",
 //  "orx-timer",
@@ -100,6 +100,7 @@ repositories {
 
 dependencies {
 
+        implementation("com.google.zxing:core:3.5.0")
 //    implementation(libs.jsoup)
       implementation(libs.gson)
       implementation(libs.csv)
