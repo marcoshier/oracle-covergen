@@ -15,9 +15,20 @@ import java.io.File
 
 fun main() {
     application {
+
+        val prod = System.getProperty("prod") != null
+
         configure {
-            width = ((1920 / 2) * 3) / 2 + 1080/2
-            height = (1920) / 2
+            if (!prod) {
+                width = ((1920 / 2) * 3) / 2 + 1080 / 2
+                height = (1920) / 2
+            } else {
+                width = ((1920 / 2) * 3)  + 1080
+                height = (1920)
+                position = IntVector2(0, 0)
+                hideWindowDecorations = true
+                hideCursor = true
+            }
 
         }
         program {
@@ -30,10 +41,12 @@ fun main() {
             val guides = SphericalGuides(drawer)
             val pointCloud = PointCloud(drawer, dataModel.points)
             val selector = SelectorWidget(drawer)
+            val touchPoints = TouchPoints(drawer)
             val smallScreenView = ViewBox(drawer, Vector2(0.0, 0.0), 2880, 1920) {
                 guides.draw()
                 pointCloud.draw()
                 selector.draw()
+                touchPoints.draw()
             }
 
             val details = Details(drawer, dataModel)
@@ -41,6 +54,20 @@ fun main() {
 
             val minimap = Minimap(drawer)
             val minimapView = ViewBox(drawer, Vector2(0.0, height - 128.0), 128, 128) { minimap.draw() }
+
+
+            mouse.buttonDown.listen {
+                touchPoints.buttonDown(it)
+            }
+
+            mouse.buttonUp.listen {
+                touchPoints.buttonUp(it)
+            }
+
+            mouse.dragged.listen {
+                touchPoints.dragged(it)
+            }
+
 
 
             camera.orientationChanged.listen {
