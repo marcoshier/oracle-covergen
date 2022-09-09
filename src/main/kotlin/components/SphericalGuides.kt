@@ -15,7 +15,7 @@ import org.openrndr.shape.Path3D
 
 class SphericalGuides(val drawer: Drawer) : Animatable() {
 
-    var opacity = 0.0
+    var opacity = 1.0
 
     fun fadeIn() {
         this::opacity.animate(1.0, 500, Easing.CubicInOut)
