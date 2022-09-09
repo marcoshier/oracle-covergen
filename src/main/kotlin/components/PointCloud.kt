@@ -80,7 +80,7 @@ class PointCloud(val drawer: Drawer, positions: List<Vector3>) : Animatable() {
                         float distance = length(pp-vec2(1920.0, 1080.0)/2.0);
                         
                         if (distance < 100.0) {
-                            size += smoothstep(30.0, 0.0, distance) * 0.02 * p_focusFactor;
+                            size += smoothstep(100.0, 0.0, distance) * 0.02 * p_focusFactor;
                             //x_color = vec4(1.0+p_focusFactor, 1.0+p_focusFactor, 1.0+p_focusFactor, 1.0);
                             x_color = vec4(1.0, 1.0, 1.0, 1.0);
                             x_color.a = 0.1;                        

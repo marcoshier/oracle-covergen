@@ -16,38 +16,35 @@ import java.io.File
 fun main() {
     application {
         configure {
-            width = 1920
-            height = 1080
+            width = ((1920 / 2) * 3) / 2 + 1080/2
+            height = (1920) / 2
+
         }
         program {
-             val points = csvReader().readAllWithHeader(File("offline-data/graph/graph-tsne-d-100-i-100-p25-v2.csv")).map {
-                 Vector2(it["x"]!!.toDouble(), it["y"]!!.toDouble())
-             }
-            val bounds = points.bounds
-            val llbounds = Rectangle(-180.0, 0.0, 360.0, 180.0)
-            val latlon = points.map { it.map(bounds, llbounds) }
-
-            val positions = latlon.map { Spherical(it.x, it.y, 10.0).cartesian }
-            val dataModel = DataModel(positions)
+            val dataModel = DataModel()
 
             extend(Screenshots())
 
             val camera = extend(QuaternionCamera())
 
             val guides = SphericalGuides(drawer)
-            val pointCloud = PointCloud(drawer, positions)
-
+            val pointCloud = PointCloud(drawer, dataModel.points)
             val selector = SelectorWidget(drawer)
+            val smallScreenView = ViewBox(drawer, Vector2(0.0, 0.0), 2880, 1920) {
+                guides.draw()
+                pointCloud.draw()
+                selector.draw()
+            }
+
             val details = Details(drawer, dataModel)
+            val bigScreenView = ViewBox(drawer, Vector2(2880.0, 0.0), 1080, 1920) { details.draw() }
 
             val minimap = Minimap(drawer)
             val minimapView = ViewBox(drawer, Vector2(0.0, height - 128.0), 128, 128) { minimap.draw() }
 
 
             camera.orientationChanged.listen {
-                if (!camera.zooming) {
-                    dataModel.lookAt = (it.matrix.matrix44.inversed * Vector4(0.0, 0.0, -10.0, 1.0)).xyz
-                }
+                dataModel.lookAt = (it.matrix.matrix44.inversed * Vector4(0.0, 0.0, -10.0, 1.0)).xyz
                 minimap.orientation = it
             }
             camera.zoomOutStarted.listen {
@@ -56,8 +53,10 @@ fun main() {
                 guides.fadeIn()
                 // this is a bit of a hack to make sure the active points is emptied
                 dataModel.activePoints = emptyList()
+                details.fadeOut()
             }
             camera.zoomInFinished.listen {
+                details.fadeIn()
                 selector.fadeIn()
                 pointCloud.fadeIn()
                 guides.fadeOut()
@@ -69,10 +68,8 @@ fun main() {
             }
 
             extend {
-                guides.draw()
-                pointCloud.draw()
-                selector.draw()
-                details.draw()
+                smallScreenView.draw()
+                bigScreenView.draw()
                 minimapView.draw()
             }
         }

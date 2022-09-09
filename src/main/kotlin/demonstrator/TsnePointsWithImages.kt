@@ -10,9 +10,15 @@ import org.openrndr.animatable.easing.Easing
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
+import org.openrndr.extensions.Screenshots
+import org.openrndr.extra.fx.Post
 import org.openrndr.extra.fx.blend.Overlay
+import org.openrndr.extra.fx.color.ColorCorrection
+import org.openrndr.extra.fx.color.ColorMix
 import org.openrndr.extra.kdtree.kdTree
+import org.openrndr.extra.temporalblur.TemporalBlur
 import org.openrndr.ffmpeg.ScreenRecorder
+import org.openrndr.math.Matrix55
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import org.openrndr.math.transforms.transform
@@ -28,7 +34,7 @@ import kotlin.math.sin
 
 fun main() = application {
     configure {
-        width = 1600
+        width = 1000
         height = 1000
     }
     program {
@@ -58,7 +64,7 @@ fun main() = application {
             image.destroy()
         }
 
-        val csv = CsvReader().readAll(File("data/graph-tsne-d-100-i-100-p25-v2.csv")).drop(1)
+        val csv = CsvReader().readAll(File("offline-data/graph/graph-tsne-d-100-i-100-p25-v2.csv")).drop(1)
         var points = csv.map {
             Vector2(it[0].toDouble(), it[1].toDouble())
         }.drop(skipPoints)
@@ -162,6 +168,32 @@ fun main() = application {
 
 
         val c = extend(Camera2D())
+        extend(Screenshots()){
+            contentScale = 4.0
+            trigger()
+        }
+/*
+        extend(Post()) {
+            val cc = ColorCorrection()
+            cc.gamma = 0.7
+            cc.saturation = 1.5
+            post { i, o ->
+                cc.apply(i, o)
+            }
+
+        }
+
+        extend(TemporalBlur()) {
+            this.fps = 60.0
+            samples = 120
+            duration = 1.0
+            this.colorMatrix = { t:Double ->
+                grayscale(1.0/3.0, 1.0/3.0, 1.0/3.0) * t + Matrix55.IDENTITY * (1.0-t)
+            }
+        }
+*/
+
+
         extend {
             anim.updateAnimation()
             val cursorPosition = (c.view.inversed * mouse.position.xy01).div.xy
@@ -175,11 +207,6 @@ fun main() = application {
                 imageState.activeIndex = -1
             }
 
-
-
-            drawer.stroke = ColorRGBa.WHITE
-            drawer.fill = null
-            drawer.rectangle(points.bounds)
 
             drawer.stroke = null
             drawer.fill = ColorRGBa.WHITE.opacify(0.25)
@@ -213,8 +240,7 @@ fun main() = application {
                     float sdy = smoothstep(0.44,0.5, dy);
                                         
                     vec4 c = texture(p_tiles, vec3(uv, k));
-                    c.b += sdx + sdy;
-                    c.a += sdx + sdy;
+  
                     
                     x_fill = c;
                 """.trimIndent()
@@ -223,11 +249,14 @@ fun main() = application {
                 val t = sin(seconds) * 0.5 + 0.5
 
                 parameter("tiles", tiles)
-                parameter("morph", anim.k)
+                println(seconds*60.0 + 1.0 )
+                parameter("morph", seconds*60.0 + 1.0)
             }
+            drawer.drawStyle.blendMode = BlendMode.ADD
             drawer.vertexBufferInstances(listOf(vb), listOf(transforms), DrawPrimitive.TRIANGLE_STRIP, nVertex)
+            drawer.drawStyle.blendMode = BlendMode.BLEND
 
-            drawer.defaults()
+            drawer.defaults()/*
             if(imageState.activeIndex != -1) {
                 if (imageState.image != null) {
                     drawer.image(imageState.image!!, 1050.0, 0.0)
@@ -251,7 +280,7 @@ fun main() = application {
 
                     e.printStackTrace()
                 }
-            }
+            }*/
 
         }
     }
