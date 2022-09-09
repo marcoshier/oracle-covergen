@@ -36,7 +36,7 @@ class DataModel {
 
 
     fun generateData(): List<List<String>> {
-        val articleData = Gson().fromJson(FileReader(File("data/mapped-v2r1.json")),Array<Entry>::class.java)
+        val articleData = Gson().fromJson(FileReader(File("offline-data/graph/mapped-v2r1.json")),Array<Entry>::class.java)
         val entries = articleData.drop(skipPoints).map {
             listOf(it.ogdata["Title"], it.ogdata["Author"], it.ogdata["Faculty"], it.ogdata["Department"], it.ogdata["Date"]) as List<String>
         }
@@ -71,7 +71,7 @@ class DataModel {
             }
         }
 
-    var selectionRadius = 0.22
+    var selectionRadius = 0.24
 
     fun findActivePoints(): List<Int> {
         return kdtree.findAllInRadius(lookAt, selectionRadius).sortedBy { it.distanceTo(lookAt) }.map {

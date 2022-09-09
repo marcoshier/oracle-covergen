@@ -120,7 +120,7 @@ class Details(val drawer: Drawer, val data: List<List<String>>) {
         for (i in added) {
 
             val cover = covers.getOrPut(i) { Cover() }
-            cover.proxy = colorBufferLoader.loadFromUrl("file:data/generated/png/${skipPoints + i}.png")
+            cover.proxy = colorBufferLoader.loadFromUrl("file:offline-data/generated/png/${skipPoints + i}.png")
 
             cover.dead = false
             cover.removing = false
@@ -169,7 +169,7 @@ class Details(val drawer: Drawer, val data: List<List<String>>) {
         }
 
 
-        for (cover in covers.values) {
+        for (cover in covers.values.map { it }) {
             cover.proxy!!.events.loaded.deliver()
             cover.updateAnimation()
         }

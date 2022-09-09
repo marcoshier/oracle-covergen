@@ -20,6 +20,7 @@ class PointCloud(val drawer: Drawer, positions: List<Vector3>) : Animatable() {
             image.copyTo(tiles, i)
             image.destroy()
         }
+        tiles.filterMag = MagnifyingFilter.NEAREST
     }
 
 
@@ -44,13 +45,13 @@ class PointCloud(val drawer: Drawer, positions: List<Vector3>) : Animatable() {
     ).apply {
         put {
             write(Vector3(-1.0, -1.0, 0.0))
-            write(Vector2(0.0, 0.0))
+            write(Vector2(0.35, 0.35))
             write(Vector3(1.0, -1.0, 0.0))
-            write(Vector2(1.0, 0.0))
+            write(Vector2(0.65, 0.35))
             write(Vector3(-1.0, 1.0, 0.0))
-            write(Vector2(0.0, 1.0))
+            write(Vector2(0.35, 0.65))
             write(Vector3(1.0, 1.0, 0.0))
-            write(Vector2(1.0, 1.0))
+            write(Vector2(0.65, 0.65))
         }
     }
 
@@ -92,11 +93,15 @@ class PointCloud(val drawer: Drawer, positions: List<Vector3>) : Animatable() {
 
                     float sdx = smoothstep(0.44,0.5, dx);
                     float sdy = smoothstep(0.44,0.5, dy);
+                        
                                         
+                                                                                
+                                                            
                     vec4 c = texture(p_tiles, vec3(uv, k));
   
                     
                     x_fill = c;
+                    
                     """.trimIndent()
 
         vertexPreamble = """
@@ -107,13 +112,15 @@ class PointCloud(val drawer: Drawer, positions: List<Vector3>) : Animatable() {
                         vec3 voffset = (x_viewMatrix * vec4(i_offset, 1.0)).xyz;
                         
                         
+                        
+                        
                         x_viewMatrix = mat4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
                         vec4 cp = x_projectionMatrix * vec4(voffset, 1.0);
                         vec2 sp = cp.xy / cp.w;
                         
                         vec2 pp = (sp * 0.5 + 0.5) * vec2(2880.0, 1920.0);
 
-                        float size = 0.01;
+                        float size = 0.05;
                         float distance = length(pp-vec2(2880.0, 1920.0)/2.0);
                         
                         if (distance < 100.0) {
