@@ -34,21 +34,18 @@ class DataModel {
     }
     val points = createPoints()
 
-/*    fun generateOverlays(): List<Coverlay> {
+
+    fun generateData(): List<List<String>> {
         val articleData = Gson().fromJson(FileReader(File("data/mapped-v2r1.json")),Array<Entry>::class.java)
         val entries = articleData.drop(skipPoints).map {
             listOf(it.ogdata["Title"], it.ogdata["Author"], it.ogdata["Faculty"], it.ogdata["Department"], it.ogdata["Date"]) as List<String>
         }
-        return  entries.mapIndexed { i, it ->
-            val initialFrame = Rectangle(0.0, 0.0, 540.0, 960.0)
-            val c = Coverlay(initialFrame, it).apply {
-                val s = Section(initialFrame)
-                subdivide(s)
-            }
-            c
-        }
+        println("${entries[0]}")
+        return entries
     }
-    val overlays = generateOverlays()*/
+    val data = generateData()
+
+
 
     /**
      * The kd-tree for the points

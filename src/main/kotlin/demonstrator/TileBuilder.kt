@@ -19,15 +19,15 @@ import kotlin.math.ceil
  */
 fun main() {
     val tilingSize = 4096
-    val tileSize = 128
-    val tileDir = File("data/tiles-merged-$tileSize-v2").apply {
+    val tileSize = 16
+    val tileDir = File("offline-data/tiles/tiles-merged-$tileSize-v2").apply {
         if (!this.exists()) {
             this.mkdirs()
         }
     }
     val imageDirs =
         listOf(
-            File("data/generated"),
+            File("data/generated/png"),
         )
 
     if (!tileDir.exists()) {

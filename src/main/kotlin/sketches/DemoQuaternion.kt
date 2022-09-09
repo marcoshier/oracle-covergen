@@ -36,7 +36,7 @@ fun main() {
                 selector.draw()
             }
 
-            val details = Details(drawer, dataModel)
+            val details = Details(drawer, dataModel.data)
             val bigScreenView = ViewBox(drawer, Vector2(2880.0, 0.0), 1080, 1920) { details.draw() }
 
             val minimap = Minimap(drawer)

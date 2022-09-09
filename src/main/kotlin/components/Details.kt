@@ -1,5 +1,7 @@
 package components
 
+import classes.Entry
+import com.google.gson.Gson
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.easing.Easing
 import org.openrndr.color.ColorRGBa
@@ -10,12 +12,12 @@ import org.openrndr.internal.colorBufferLoader
 import org.openrndr.shape.Rectangle
 import textSandbox.Coverlay
 import textSandbox.Section
+import java.io.File
+import java.io.FileReader
 import kotlin.math.abs
 
 
-class Details(val drawer: Drawer, val model: DataModel) {
-
-
+class Details(val drawer: Drawer, val data: List<List<String>>) {
 
     class Fade : Animatable() {
         var opacity = 0.0
@@ -36,7 +38,7 @@ class Details(val drawer: Drawer, val model: DataModel) {
 
 
 
-    class Cover : Animatable() {
+    inner class Cover : Animatable() {
         var width = 0.0
         var height = 0.0
         var x = 40.0
@@ -48,13 +50,15 @@ class Details(val drawer: Drawer, val model: DataModel) {
         var coverlay: Coverlay? = null
         var mainCoverZoom = 0.0
 
-        fun revealMain() {
-                ::mainCoverZoom.animate(1.0, 1400, Easing.QuadInOut).completed.listen {
+        fun reveal(data: List<String>) {
+            ::mainCoverZoom.cancel()
+            ::mainCoverZoom.animate(1.0, 1400, Easing.QuadInOut).completed.listen {
+                val initialFrame = drawer.bounds.offsetEdges(-80.0)
+                coverlay = Coverlay(initialFrame, data).apply {
+                    subdivide(Section(initialFrame))
+                    unfold()
+                }
             }
-        }
-
-        fun hideMain() {
-            ::mainCoverZoom.animate(0.0, 1000, Easing.QuadInOut)
         }
     }
 
@@ -81,6 +85,7 @@ class Details(val drawer: Drawer, val model: DataModel) {
                     c::width.animate(0.0, 1500, Easing.CubicInOut)
                     c::height.animate(0.0, 1500, Easing.CubicInOut)
                     c::dummy.animate(1.0, 1500).completed.listen {
+                        c.coverlay = null
                         c.removing = false
                         c.dead = true
                     }
@@ -130,10 +135,25 @@ class Details(val drawer: Drawer, val model: DataModel) {
 
         }
 
-        val mainCover = covers[newPoints[0]]
-        if(oldPoints[0] != newPoints[0]) {
-            mainCover?.revealMain()
+        // update main cover
+        if(newPoints.isNotEmpty() && oldPoints.isNotEmpty()) {
+            val mainCover = covers[newPoints[0]]
+            val data = data[newPoints[0]]
+
+            if(oldPoints[0] != newPoints[0]) {
+                if(mainCover!!.coverlay != null) {
+                    mainCover.apply {
+                        ::mainCoverZoom.animate(0.0, 1400, Easing.QuadInOut).completed.listen {
+                            mainCover.coverlay = null
+                            mainCover.reveal(data)
+                        }
+                    }
+                } else {
+                    mainCover.reveal(data)
+                }
+            }
         }
+
 
         covers.values.removeIf { it.dead }
     }
@@ -156,18 +176,23 @@ class Details(val drawer: Drawer, val model: DataModel) {
 
 
         drawer.isolated {
+
             drawer.defaults()
             drawer.fill = ColorRGBa.GREEN
             drawer.fontMap = font
 
             for (cover in covers.values) {
-                val rect = Rectangle(cover.x - cover.width / 2.0, cover.y, cover.width, cover.height)
+                val rect = Rectangle(cover.x - cover.width / 2.0, cover.y, cover.width, cover.height).scaledBy(5.0 * cover.mainCoverZoom)
                 drawer.rectangle(rect)
 
 
                 val cb = cover.proxy?.colorBuffer
                 if(cb != null) {
                     drawer.imageFit(cb, rect)
+                }
+
+                if(cover.coverlay != null) {
+                    cover.coverlay!!.draw(drawer, cb)
                 }
             }
 

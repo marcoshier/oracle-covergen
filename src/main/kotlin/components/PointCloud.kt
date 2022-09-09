@@ -5,10 +5,23 @@ import org.openrndr.animatable.easing.Easing
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.extra.color.spaces.toOKLABa
+import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import org.openrndr.math.map
 
 class PointCloud(val drawer: Drawer, positions: List<Vector3>) : Animatable() {
+
+    val tiles = arrayTexture(4096,4096,2)
+
+    init {
+        for (i in 0 until 2) {
+            val image = loadImage("offline-data/tiles/tiling-${String.format("%04d", i)}.png")
+
+            image.copyTo(tiles, i)
+            image.destroy()
+        }
+    }
+
 
     var focusFactor = 0.0
 
@@ -25,14 +38,19 @@ class PointCloud(val drawer: Drawer, positions: List<Vector3>) : Animatable() {
     private val quad = vertexBuffer(
         vertexFormat {
             position(3)
+            textureCoordinate(2)
         },
         4
     ).apply {
         put {
             write(Vector3(-1.0, -1.0, 0.0))
+            write(Vector2(0.0, 0.0))
             write(Vector3(1.0, -1.0, 0.0))
+            write(Vector2(1.0, 0.0))
             write(Vector3(-1.0, 1.0, 0.0))
+            write(Vector2(0.0, 1.0))
             write(Vector3(1.0, 1.0, 0.0))
+            write(Vector2(1.0, 1.0))
         }
     }
 
@@ -58,43 +76,62 @@ class PointCloud(val drawer: Drawer, positions: List<Vector3>) : Animatable() {
             in vec4 x_color;
         """.trimIndent()
         fragmentTransform = """
-                        x_fill.rgb = vi_color.rgb * x_color.rgb;
-                        
+                          
+                    
+                    int i = c_instance % 256;
+                    int j = (c_instance / 256)%256;
+                    int k = c_instance / (256*256);
+                    
+                    vec2 uv = va_texCoord0 / 256.0;
+                    uv.x += i/256.0;
+                    uv.y += j/256.0;
+                    uv.y = 1.0 - uv.y;
+                    
+                    float dx = abs(va_texCoord0.x-0.5);
+                    float dy = abs(va_texCoord0.y-0.5);
+
+                    float sdx = smoothstep(0.44,0.5, dx);
+                    float sdy = smoothstep(0.44,0.5, dy);
+                                        
+                    vec4 c = texture(p_tiles, vec3(uv, k));
+  
+                    
+                    x_fill = c;
                     """.trimIndent()
 
         vertexPreamble = """
             out vec4 x_color;
         """.trimIndent()
         vertexTransform = """
-                        
-                        vec3 voffset = (x_viewMatrix * vec4(i_offset, 1.0)).xyz;
-                        
-                        
-                        x_viewMatrix = mat4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
-                        vec4 cp = x_projectionMatrix * vec4(voffset, 1.0);
-                        vec2 sp = cp.xy / cp.w;
-                        
-                        vec2 pp = (sp * 0.5 + 0.5) * vec2(1920.0, 1080.0);
+                       
+                    vec3 voffset = (x_viewMatrix * vec4(i_offset, 1.0)).xyz;
+                    
+                    
+                    x_viewMatrix = mat4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+                    vec4 cp = x_projectionMatrix * vec4(voffset, 1.0);
+                    vec2 sp = cp.xy / cp.w;
+                    
+                    vec2 pp = (sp * 0.5 + 0.5) * vec2(1920.0, 1080.0);
 
-                        float size = 0.01;
-                        float distance = length(pp-vec2(1920.0, 1080.0)/2.0);
-                        
-                        if (distance < 100.0) {
-                            size += smoothstep(100.0, 0.0, distance) * 0.02 * p_focusFactor;
-                            //x_color = vec4(1.0+p_focusFactor, 1.0+p_focusFactor, 1.0+p_focusFactor, 1.0);
-                            x_color = vec4(1.0, 1.0, 1.0, 1.0);
-                            x_color.a = 0.1;                        
-                        } else {
-                            x_color = vec4(1.0, 1.0, 1.0, 1.0);
-                        }
-                        
-                        x_position.xyz *= size;
-                        x_position.xyz += voffset;
-                        
+                    float size = 0.05;
+                    float distance = length(pp-vec2(1920.0, 1080.0)/2.0);
+                    
+                    if (distance < 100.0) {
+                        size += smoothstep(100.0, 0.0, distance) * 0.02 * p_focusFactor;
+                        //x_color = vec4(1.0+p_focusFactor, 1.0+p_focusFactor, 1.0+p_focusFactor, 1.0);
+                        x_color = vec4(1.0, 1.0, 1.0, 1.0);
+                        x_color.a = 0.1;                        
+                    } else {
+                        x_color = vec4(1.0, 1.0, 1.0, 1.0);
+                    }
+                    
+                    x_position.xyz *= size;
+                    x_position.xyz += voffset;
+                   
+                    
+                """.trimIndent()
 
-                        
-                    """.trimIndent()
-
+        parameter("tiles", tiles)
         parameter("focusFactor", focusFactor)
     }
 

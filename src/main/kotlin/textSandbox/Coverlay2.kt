@@ -7,6 +7,7 @@ import org.openrndr.application
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.extra.color.spaces.toOKLABa
+import org.openrndr.extra.imageFit.imageFit
 import org.openrndr.extra.shadestyles.LinearGradientOKLab
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
@@ -62,7 +63,8 @@ class Section(val rect: Rectangle, val direction: Int = 0): Animatable() {
         drawer.fontMap = font
 
         // not working :(
-        //drawer.drawStyle.clip = animatedRect
+
+        drawer.drawStyle.clip = animatedRect
         val offset = 20.0
         drawer.writer {
             val childWidth = childRect?.width ?: 0.0
@@ -77,7 +79,7 @@ class Section(val rect: Rectangle, val direction: Int = 0): Animatable() {
             text(text.trimIndent())
         }
 
-        //drawer.drawStyle.clip = null
+        drawer.drawStyle.clip = null
 
     }
 
@@ -89,7 +91,6 @@ class Coverlay(val initialFrame: Rectangle, val data: List<String>) {
     var subdivisionsLeft = 4
     var allSections = mutableListOf<Section>()
     var currentDirection = 1
-    var backgroundImage: ColorBuffer? = null
 
     fun subdivide(frame: Section) {
 
@@ -126,13 +127,17 @@ class Coverlay(val initialFrame: Rectangle, val data: List<String>) {
         }
     }
 
-    fun draw(drawer: Drawer) {
+    fun draw(drawer: Drawer, backgroundImage: ColorBuffer? = null) {
 
         if(backgroundImage != null) {
-            drawer.image(backgroundImage!!)
+            drawer.imageFit(backgroundImage, initialFrame)
         } else {
-            drawer.clear(ColorRGBa.TRANSPARENT)
+            drawer.stroke = ColorRGBa.PINK
+            drawer.rectangle(initialFrame)
         }
+        drawer.fill = null
+        drawer.stroke = ColorRGBa.PINK
+        drawer.rectangle(initialFrame)
 
         drawer.fill = ColorRGBa.WHITE
         drawer.fontMap = fontList[0]
