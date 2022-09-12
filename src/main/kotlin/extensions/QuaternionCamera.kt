@@ -25,12 +25,32 @@ class QuaternionCamera : Extension {
     var zoomInStarted: Event<Unit> = Event()
     var zoomInFinished: Event<Unit> = Event()
 
+    var zoomLockStarted: Event<Unit> = Event()
+    var zoomLockFinished: Event<Unit> = Event()
+
     var orientationChanged: Event<Quaternion> = Event()
 
     var buttonDown = false
 
     inner class Zoom: Animatable() {
+
+        var locked = false
+
         var dragCharge = 0.0
+            set(value) {
+                if (field != value) {
+
+//                    if (value >= 1.0 && value > field ) {
+//                        if (!locked) {
+//                            locked = true
+//                            zoomLockStarted.trigger(Unit)
+//                        }
+//                    }
+                    field = value
+
+                }
+            }
+
         var dragChargeIncrement = 0.0
             set(value) {
                 if (field != value) {
@@ -47,6 +67,7 @@ class QuaternionCamera : Extension {
 
         fun discharge() {
             dragChargeIncrement = 0.0
+            dragCharge = min(1.0, dragCharge)
             cancel()
             animate(::dragCharge, 0.0, (8500 * dragCharge).coerceAtMost(1000.0).toLong(), Easing.QuadOut).completed.listen {
                 zoomInFinished.trigger(Unit) }
@@ -55,10 +76,11 @@ class QuaternionCamera : Extension {
     val zoom = Zoom()
 
 
-
-    val zoomLockThreshold = 5.0
-    var lastTime = System.currentTimeMillis()
-    var currentTime = 0L
+    fun unlockZoom() {
+        zoom.locked = false
+        zoomLockFinished.trigger(Unit)
+        zoom.discharge()
+    }
 
     override fun setup(program: Program) {
         program.mouse.buttonDown.listen {
@@ -97,7 +119,10 @@ class QuaternionCamera : Extension {
         program.mouse.buttonUp.listen {
             if (!it.propagationCancelled) {
                 buttonDown = false
-                zoom.discharge()
+
+                if (!zoom.locked) {
+                    zoom.discharge()
+                }
             }
         }
     }

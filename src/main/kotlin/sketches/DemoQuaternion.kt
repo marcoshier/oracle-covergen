@@ -35,12 +35,11 @@ fun main() {
 
             extend(Screenshots())
 
-
-
             val facultyFilterModel = FacultyFilterModel()
             val guides = SphericalGuides(drawer)
             val pointCloud = PointCloud(drawer, dataModel.points, facultyFilterModel)
             val selector = SelectorWidget(drawer)
+            val zoomLock = ZoomLockWidget(drawer)
             val miniDetails = MiniDetails(drawer, dataModel)
             val touchPoints = TouchPoints(drawer)
             val facultyFilter = FacultyFilter(drawer, facultyFilterModel)
@@ -48,6 +47,7 @@ fun main() {
                 guides.draw()
                 pointCloud.draw()
                 selector.draw()
+                zoomLock.draw()
                 miniDetails.draw()
                 touchPoints.draw()
                 facultyFilter.draw()
@@ -64,6 +64,7 @@ fun main() {
             mouse.buttonDown.listen {
                 touchPoints.buttonDown(it)
                 facultyFilter.buttonDown(it)
+                zoomLock.buttonDown(it)
             }
 
             mouse.buttonUp.listen {
@@ -81,6 +82,10 @@ fun main() {
                 dataModel.lookAt = (it.matrix.matrix44.inversed * Vector4(0.0, 0.0, -10.0, 1.0)).xyz
                 minimap.orientation = it
             }
+            camera.zoomLockStarted.listen {
+                zoomLock.fadeIn()
+            }
+
             camera.zoomOutStarted.listen {
                 selector.fadeOut()
                 miniDetails.fadeOut()
@@ -102,6 +107,10 @@ fun main() {
             dataModel.activePointsChanged.listen {
                 details.updateActive(it.oldPoints, it.newPoints)
                 miniDetails.updateActive(it.oldPoints, it.newPoints)
+            }
+
+            zoomLock.zoomUnlockRequested.listen {
+                camera.unlockZoom()
             }
 
             extend {

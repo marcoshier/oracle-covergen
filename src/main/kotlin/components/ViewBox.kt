@@ -7,7 +7,13 @@ import org.openrndr.draw.isolatedWithTarget
 import org.openrndr.draw.renderTarget
 import org.openrndr.math.Vector2
 
-class ViewBox(val drawer: Drawer, val position: Vector2, val width:Int, val height: Int, val drawFunction:()->Unit) {
+class ViewBox(
+    val drawer: Drawer,
+    val position: Vector2,
+    val width: Int,
+    val height: Int,
+    val drawFunction: () -> Unit
+) {
     val target = renderTarget(width, height) {
         colorBuffer()
         depthBuffer()
@@ -20,9 +26,8 @@ class ViewBox(val drawer: Drawer, val position: Vector2, val width:Int, val heig
         }
         drawer.isolated {
             drawer.defaults()
-            drawer.ortho(0.0, 2880.0+1080.0, 1920.0,0.0,-1.0, 1.0)
+            drawer.ortho(0.0, 2880.0 + 1080.0, 1920.0, 0.0, -1.0, 1.0)
             drawer.image(target.colorBuffer(0), position)
         }
     }
-
 }
