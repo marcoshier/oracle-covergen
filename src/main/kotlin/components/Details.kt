@@ -36,7 +36,7 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
 
     var coverlayFrame = Rectangle(175.0, 350.0, 1080.0 - 350.0, 1920.0 - 700.0)
 
-    inner class SimpleCover(val index: Int) : Animatable() {
+    inner class Cover(val index: Int) : Animatable() {
         var width = 0.0
         var height = 0.0
         var x = 40.0
@@ -56,7 +56,7 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
             ::coverlayOpacity.cancel()
             ::zoom.animate(1.0, 800, Easing.CubicInOut).completed.listen {
 
-                coverlay = Coverlay(drawer, image, data[index].toList().filter { it != "" }.plus(index.toString())).apply {
+                coverlay = Coverlay(drawer, proxy, data[index].toList().filter { it != "" }.plus(index.toString())).apply {
                     subdivide(Section(coverlayFrame))
                 }
 
@@ -81,9 +81,8 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
         }
     }
 
-
-    val covers = mutableMapOf<Int, SimpleCover>()
-    var activeCover: SimpleCover? = null
+    val covers = mutableMapOf<Int, Cover>()
+    var activeCover: Cover? = null
         set(value) {
             if(field != value) {
                 if(field != null && value != null) {
@@ -105,6 +104,22 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
                 }
             }
         }
+
+    private fun updateMainCover(index: Int? = null) {
+        fade.apply {
+            dummy = 0.0
+            ::dummy.cancel()
+            ::dummy.animate(1.0, 500).completed.listen {
+                if(index != null) {
+                    activeCover = covers[index]
+                    println("newcover exists $activeCover")
+                } else {
+                    activeCover = null
+                    println("no newcovers $activeCover")
+                }
+            }
+        }
+    }
 
     fun updateActive(oldPoints: List<Int>, newPoints: List<Int>) {
 
@@ -139,20 +154,20 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
             val ax = (index % 10) * 60.0 + 40.0
             val ay = (index / 10) * 60.0 + 40.0
 
-            val simpleCover = covers.getOrPut(i) { SimpleCover(index) }
-            simpleCover.dead = false
+            val cover = covers.getOrPut(i) { Cover(index) }
+            cover.dead = false
 
-            simpleCover.apply {
-                simpleCover::x.cancel()
-                simpleCover::y.cancel()
+            cover.apply {
+                cover::x.cancel()
+                cover::y.cancel()
                 val d = if (i in added) 1.0 else 1.0
-                val dx = (abs(ax - simpleCover.x) * d).toLong()
-                val dy = (abs(ay - simpleCover.y) * d).toLong()
+                val dx = (abs(ax - cover.x) * d).toLong()
+                val dy = (abs(ay - cover.y) * d).toLong()
 
-                simpleCover::x.animate(ax, dx, Easing.QuadInOut)
-                simpleCover::x.complete()
-                simpleCover::y.animate(ay, dy, Easing.QuadInOut)
-                simpleCover::y.complete()
+                cover::x.animate(ax, dx, Easing.QuadInOut)
+                cover::x.complete()
+                cover::y.animate(ay, dy, Easing.QuadInOut)
+                cover::y.complete()
             }
 
 
@@ -160,40 +175,27 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
 
         for (i in added) {
 
-            val simpleCover = covers.getOrPut(i) { SimpleCover(i) }
-            simpleCover.proxy = colorBufferLoader.loadFromUrl("file:offline-data/covers/png/${skipPoints + i}.png", queue = false)
+            val cover = covers.getOrPut(i) { Cover(i) }
+            cover.proxy = colorBufferLoader.loadFromUrl("file:offline-data/covers/png/${skipPoints + i}.png", queue = false)
 
-            simpleCover.dead = false
-            simpleCover.removing = false
+            cover.dead = false
+            cover.removing = false
 
-            simpleCover.proxy!!.events.loaded.listen {
-                simpleCover.image = simpleCover.proxy?.colorBuffer
-                simpleCover.width = 50.0
-                simpleCover.apply {
-                    simpleCover::height.cancel()
-                    simpleCover::height.animate(50.0, 500, Easing.CubicInOut)
+            cover.proxy!!.events.loaded.listen {
+                cover.image = cover.proxy?.colorBuffer
+                cover.width = 50.0
+                cover.apply {
+                    cover::height.cancel()
+                    cover::height.animate(50.0, 500, Easing.CubicInOut)
                 }
             }
 
         }
+
+        val point = if(newPoints.isNotEmpty()) newPoints[0] else null
+        updateMainCover(point)
 
         covers.values.removeIf { it.dead }
-
-
-        fade.apply {
-            dummy = 0.0
-            ::dummy.cancel()
-            ::dummy.animate(1.0, 500).completed.listen {
-                if(newPoints.isNotEmpty()) {
-                    activeCover = covers[newPoints[0]]
-                    println("newcover exists $activeCover")
-                } else {
-                    activeCover = null
-                    println("no newcovers $activeCover")
-                }
-            }
-        }
-
     }
 
 
