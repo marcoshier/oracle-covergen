@@ -9,7 +9,7 @@ import org.openrndr.draw.isolated
 import org.openrndr.draw.loadFont
 import org.openrndr.shape.Rectangle
 
-class FacultyFilter(val drawer: Drawer) : Animatable() {
+class FacultyFilter(val drawer: Drawer, val model: FacultyFilterModel) : Animatable() {
 
     var fade = 1.0
 
@@ -23,8 +23,21 @@ class FacultyFilter(val drawer: Drawer) : Animatable() {
         ::fade.animate(1.0, 500, Easing.QuadInOut)
     }
 
-    fun buttonDown(mouseEvent: MouseEvent) {
+    fun dragged(mouseEvent: MouseEvent) {
+        for (i in names.indices) {
+            if (mouseEvent.position in rectangle(i)) {
+                mouseEvent.cancelPropagation()
+            }
+        }
+    }
 
+    fun buttonDown(mouseEvent: MouseEvent) {
+        for (i in names.indices) {
+            if (mouseEvent.position in rectangle(i)) {
+                mouseEvent.cancelPropagation()
+                model.states[i].visible = !model.states[i].visible
+            }
+        }
     }
 
     fun buttonUp(mouseEvent: MouseEvent) {
@@ -42,16 +55,22 @@ class FacultyFilter(val drawer: Drawer) : Animatable() {
         "Faculty 10"
     )
 
+    private fun rectangle(index: Int): Rectangle {
+        val r = Rectangle(80.0, drawer.height/2.0 + 140.0 * (index-3.5), 550.0, 80.0)
+        val rt = Rectangle( 80.0 + index * 550.0/ 8.0, drawer.height/2.0+140.0 * 0.0, 550.0/8.0, 80.0 )
+        val rf = r * fade + rt * (1.0-fade)
+        return rf
+    }
+
+
     fun draw() {
         updateAnimation()
 
         drawer.isolated {
             drawer.defaults()
             for ((index, name) in names.withIndex()) {
-                drawer.fill = ColorRGBa.GRAY
-                val r = Rectangle(80.0, drawer.height/2.0 + 140.0 * (index-3.5), 550.0, 80.0)
-                val rt = Rectangle( 80.0 + index * 550.0/ 8.0, drawer.height/2.0+140.0 * 0.0, 550.0/8.0, 80.0 )
-                val rf = r * fade + rt * (1.0-fade)
+                drawer.fill = ColorRGBa.GRAY.shade(0.5 + 0.5 * this@FacultyFilter.model.states[index].fade)
+                val rf = rectangle(index)
                 drawer.rectangle(rf)
                 drawer.fill = ColorRGBa.WHITE
                 drawer.stroke = null
@@ -59,13 +78,7 @@ class FacultyFilter(val drawer: Drawer) : Animatable() {
 
 
                 drawer.text(name.take((name.length*fade).toInt().coerceAtLeast(1)), rf.corner.x + 20.0, rf.center.y + 10.0)
-
             }
         }
-
-
     }
-
-
-
 }
