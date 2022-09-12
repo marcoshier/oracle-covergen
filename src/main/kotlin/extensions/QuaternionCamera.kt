@@ -55,6 +55,11 @@ class QuaternionCamera : Extension {
     val zoom = Zoom()
 
 
+
+    val zoomLockThreshold = 5.0
+    var lastTime = System.currentTimeMillis()
+    var currentTime = 0L
+
     override fun setup(program: Program) {
         program.mouse.buttonDown.listen {
             if (!it.propagationCancelled) {
