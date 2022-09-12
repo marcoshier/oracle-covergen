@@ -69,6 +69,7 @@ fun main() {
 
             mouse.buttonUp.listen {
                 touchPoints.buttonUp(it)
+                facultyFilter.buttonUp(it)
             }
 
             mouse.dragged.listen {
@@ -100,7 +101,7 @@ fun main() {
                 selector.fadeIn()
                 miniDetails.fadeIn()
                 pointCloud.fadeIn()
-                facultyFilter.fadeIn()
+                //facultyFilter.fadeIn()
                 // this is a bit of a hack to make sure active points are updated, it doesn't work though?
                 camera.orientationChanged.trigger(camera.orientation)
             }

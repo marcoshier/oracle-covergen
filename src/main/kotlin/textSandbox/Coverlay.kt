@@ -17,13 +17,12 @@ import org.openrndr.shape.Rectangle
 
 
 val fontList = listOf(
-    Pair("data/fonts/IBMPlexSans-SemiBold.otf", 46.0), // title
-    Pair("data/fonts/IBMPlexSans-Text.otf", 26.0), // Authors
-    Pair("data/fonts/IBMPlexSans-Medium.otf", 26.0), // Faculty
-    Pair("data/fonts/IBMPlexSans-Text.otf", 18.0), // Dept
-    Pair("data/fonts/IBMPlexSans-Text.otf", 18.0), // Date
+    Pair("data/fonts/Roboto-Bold.ttf", 46.0), // title
+    Pair("data/fonts/RobotoCondensed-Regular.ttf", 26.0), // Authors
+    Pair("data/fonts/Roboto-Bold.ttf", 26.0), // Faculty
+    Pair("data/fonts/RobotoCondensed-Regular.ttf", 18.0), // Dept
+    Pair("data/fonts/Roboto-Medium.ttf", 18.0), // Date
 )
-
 
 class Section(val rect: Rectangle, val direction: Int = 0): Animatable() {
 

@@ -199,7 +199,6 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
     }
 
 
-    val font = loadFont("data/fonts/IBMPlexSans-Medium.otf", 24.0)
 
     fun draw() {
         fade.updateAnimation()
@@ -220,8 +219,7 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
         drawer.isolated {
 
             drawer.defaults()
-            drawer.fill = ColorRGBa.GREEN
-            drawer.fontMap = font
+            drawer.fill = ColorRGBa.TRANSPARENT
 
             for (cover in covers.values) {
                 val minimizedRect = Rectangle(cover.x - cover.width / 2.0, cover.y, cover.width, cover.height)
