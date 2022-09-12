@@ -96,7 +96,7 @@ class Section(val rect: Rectangle, val direction: Int = 0, val qr: ColorBuffer? 
                 text(text.trimIndent())
             }
         } else {
-            drawer.imageFit(qr, container.x, container.y, 100.0, 100.0, horizontalPosition = 0.5, verticalPosition = 0.5)
+            drawer.imageFit(qr, container.x, container.y, 82.0, 82.0, horizontalPosition = 0.5, verticalPosition = 0.5)
         }
 
         drawer.drawStyle.clip = null
@@ -110,7 +110,9 @@ class Coverlay(val drawer: Drawer, val backgroundImage: ColorBuffer? = null, val
     var subdivisionsLeft = data.size - 1
     var allSections = mutableListOf<Section>()
     var currentDirection = 0
-    var qr = loadImage("offline-data/qrs/${data[data.size - 1].toInt() + skipPoints}.png")
+    var qr = loadImage("offline-data/qrs/${data[data.size - 1].toInt() + skipPoints}.png").apply {
+        filter(MinifyingFilter.NEAREST, MagnifyingFilter.NEAREST)
+    }
 
     private val initialK = 0.575 // Space for title
     private var initialFrame = Rectangle.EMPTY
