@@ -40,7 +40,7 @@ fun main() = application {
     program {
 
         val skipPoints = 142082
-        val articleData = Gson().fromJson(FileReader(File("data/mapped-v2r1.json")),Array<Entry>::class.java)
+        val articleData = Gson().fromJson(FileReader(File("offline-data/graph/mapped-v2r1.json")),Array<Entry>::class.java)
         val entries = articleData.map {
             listOf(it.ogdata["Title"], it.ogdata["Author"], it.ogdata["Faculty"], it.ogdata["Department"], it.ogdata["Date"]) as List<String>
         }.drop(skipPoints)
@@ -73,7 +73,7 @@ fun main() = application {
 
         val overlays = entries.map {
             val initialFrame = Rectangle(0.0, 0.0, 540.0, 960.0)
-            val c = Coverlay(initialFrame, it)
+            val c = Coverlay(drawer, data = it)
             c.subdivide(Section(initialFrame))
             c.unfold()
             c
