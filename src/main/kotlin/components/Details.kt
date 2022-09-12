@@ -13,7 +13,7 @@ import textSandbox.Section
 import kotlin.math.abs
 
 
-class Details(val drawer: Drawer, val data: List<List<String>>) {
+class Details(val drawer: Drawer, val data: List<ArticleData>) {
 
     class Fade : Animatable() {
         var opacity = 0.0
@@ -91,7 +91,7 @@ class Details(val drawer: Drawer, val data: List<List<String>>) {
                             }
                             covers[check]!!.zoomOut().completed.listen {
                                 field = value
-                                val coverlayData = data[field].filter { it != "" }.plus(field.toString())
+                                val coverlayData = data[field].toList().filter { it != "" }.plus(field.toString())
                                 coverlay = Coverlay(drawer, covers[field]!!.image, coverlayData).apply {
                                     subdivide(Section(frame))
                                 }
