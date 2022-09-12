@@ -56,43 +56,44 @@ class QuaternionCamera : Extension {
 
 
     override fun setup(program: Program) {
-
-
         program.mouse.buttonDown.listen {
-            buttonDown = true
-            zoom.cancel()
-            dragStart = it.position
-            program.window.requestDraw()
+            if (!it.propagationCancelled) {
+                buttonDown = true
+                zoom.cancel()
+                dragStart = it.position
+                program.window.requestDraw()
+            }
         }
 
         program.mouse.dragged.listen {
-            if (!buttonDown) {
-                return@listen
+            if (!it.propagationCancelled) {
+                if (!buttonDown) {
+                    return@listen
+                }
+                val sensity = mix(1.0 / 100.0, 1.0 / 10.0, zoom.dragCharge)
+
+                orientation = Quaternion.fromAngles(
+                    it.dragDisplacement.x * sensity,
+                    it.dragDisplacement.y * sensity,
+                    0.0
+                ) * orientation
+                orientationChanged.trigger(orientation)
+
+                val distance = (it.position - dragStart).length
+                if (distance > minTravel) {
+                    zoom.dragChargeIncrement = (distance - minTravel) / 100000.0
+                }
+
+                zoom.cancel()
             }
-
-            println("drag drag drag")
-            val sensity = mix(1.0/100.0, 1.0/10.0, zoom.dragCharge)
-
-            orientation = Quaternion.fromAngles(
-                it.dragDisplacement.x * sensity,
-                it.dragDisplacement.y * sensity,
-                0.0
-            ) * orientation
-            orientationChanged.trigger(orientation)
-
-            val distance = (it.position - dragStart).length
-            if (distance > minTravel) {
-                zoom.dragChargeIncrement = (distance - minTravel) / 100000.0
-            }
-
-            zoom.cancel()
         }
 
 
         program.mouse.buttonUp.listen {
-            buttonDown = false
-            println("up up up")
-            zoom.discharge()
+            if (!it.propagationCancelled) {
+                buttonDown = false
+                zoom.discharge()
+            }
         }
     }
 

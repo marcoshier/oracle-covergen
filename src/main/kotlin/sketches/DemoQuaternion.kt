@@ -15,7 +15,6 @@ import java.io.File
 
 fun main() {
     application {
-
         val prod = System.getProperty("prod") != null
 
         configure {
@@ -29,21 +28,22 @@ fun main() {
                 hideWindowDecorations = true
                 hideCursor = true
             }
-
         }
+
         program {
             val dataModel = DataModel()
 
             extend(Screenshots())
 
-            val camera = extend(QuaternionCamera())
 
+
+            val facultyFilterModel = FacultyFilterModel()
             val guides = SphericalGuides(drawer)
             val pointCloud = PointCloud(drawer, dataModel.points)
             val selector = SelectorWidget(drawer)
             val miniDetails = MiniDetails(drawer, dataModel)
             val touchPoints = TouchPoints(drawer)
-            val facultyFilter = FacultyFilter(drawer)
+            val facultyFilter = FacultyFilter(drawer, facultyFilterModel)
             val smallScreenView = ViewBox(drawer, Vector2(0.0, 0.0), 2880, 1920) {
                 guides.draw()
                 pointCloud.draw()
@@ -63,6 +63,7 @@ fun main() {
 
             mouse.buttonDown.listen {
                 touchPoints.buttonDown(it)
+                facultyFilter.buttonDown(it)
             }
 
             mouse.buttonUp.listen {
@@ -71,7 +72,10 @@ fun main() {
 
             mouse.dragged.listen {
                 touchPoints.dragged(it)
+                facultyFilter.dragged(it)
             }
+
+            val camera = extend(QuaternionCamera())
 
             camera.orientationChanged.listen {
                 dataModel.lookAt = (it.matrix.matrix44.inversed * Vector4(0.0, 0.0, -10.0, 1.0)).xyz
@@ -101,6 +105,8 @@ fun main() {
             }
 
             extend {
+                facultyFilterModel.update()
+
                 smallScreenView.draw()
                 bigScreenView.draw()
                 minimapView.draw()

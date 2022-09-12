@@ -59,6 +59,7 @@ class PointCloud(val drawer: Drawer, positions: List<Vector3>) : Animatable() {
         vertexFormat {
             attribute("offset", VertexElementType.VECTOR3_FLOAT32)
             attribute("color", VertexElementType.VECTOR4_FLOAT32)
+            attribute("faculty", VertexElementType.UINT8, 8)
         },
         positions.size
     ).apply {
@@ -68,6 +69,10 @@ class PointCloud(val drawer: Drawer, positions: List<Vector3>) : Animatable() {
                 val f = position.length.map(10.0, 12.0, 0.0, 1.0)
                 //write(ColorRGBa.PINK.toOKLABa().mix(ColorRGBa.BLUE.toOKLABa(), f).toRGBa())
                 write(ColorRGBa.GRAY)
+                for (i in 0 until 8) {
+                    write( (0.toByte()))
+                }
+
             }
         }
     }
