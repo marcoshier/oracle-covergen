@@ -1,7 +1,6 @@
 package components
 
 import org.openrndr.animatable.Animatable
-import org.openrndr.animatable.AnimationEvent
 import org.openrndr.animatable.PropertyAnimationKey
 import org.openrndr.animatable.easing.Easing
 import org.openrndr.color.ColorRGBa
@@ -9,7 +8,6 @@ import org.openrndr.draw.*
 import org.openrndr.extra.imageFit.imageFit
 import org.openrndr.internal.colorBufferLoader
 import org.openrndr.shape.Rectangle
-import org.w3c.dom.css.Rect
 import textSandbox.Coverlay
 import textSandbox.Section
 import kotlin.math.abs
@@ -88,6 +86,9 @@ class Details(val drawer: Drawer, val data: List<List<String>>) {
                         unreveal().completed.listen {
                             val check = if(field == - 1) value else field
                             require(check != -1)
+                            require(covers.containsKey(check)) {
+                                "$check is not in covers"
+                            }
                             covers[check]!!.zoomOut().completed.listen {
                                 field = value
                                 val coverlayData = data[field].filter { it != "" }.plus(field.toString())
