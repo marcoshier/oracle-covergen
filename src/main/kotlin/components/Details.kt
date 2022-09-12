@@ -210,6 +210,7 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
             cover.proxy!!.events.loaded.deliver()
             cover.updateAnimation()
         }
+        activeCover?.updateAnimation()
 
 
         drawer.isolated {
