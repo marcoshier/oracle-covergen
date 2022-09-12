@@ -39,7 +39,7 @@ fun main() {
 
             val facultyFilterModel = FacultyFilterModel()
             val guides = SphericalGuides(drawer)
-            val pointCloud = PointCloud(drawer, dataModel.points)
+            val pointCloud = PointCloud(drawer, dataModel.points, facultyFilterModel)
             val selector = SelectorWidget(drawer)
             val miniDetails = MiniDetails(drawer, dataModel)
             val touchPoints = TouchPoints(drawer)

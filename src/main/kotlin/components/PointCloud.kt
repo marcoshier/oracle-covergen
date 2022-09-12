@@ -5,11 +5,12 @@ import org.openrndr.animatable.easing.Easing
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.extra.color.spaces.toOKLABa
+import org.openrndr.extra.noise.uniform
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import org.openrndr.math.map
 
-class PointCloud(val drawer: Drawer, positions: List<Vector3>) : Animatable() {
+class PointCloud(val drawer: Drawer, positions: List<Vector3>, val filterModel: FacultyFilterModel) : Animatable() {
 
     val tiles = arrayTexture(4096,4096,2)
 
@@ -59,7 +60,8 @@ class PointCloud(val drawer: Drawer, positions: List<Vector3>) : Animatable() {
         vertexFormat {
             attribute("offset", VertexElementType.VECTOR3_FLOAT32)
             attribute("color", VertexElementType.VECTOR4_FLOAT32)
-            attribute("faculty", VertexElementType.UINT8, 8)
+            attribute("fac0", VertexElementType.VECTOR4_FLOAT32)
+            attribute("fac1", VertexElementType.VECTOR4_FLOAT32)
         },
         positions.size
     ).apply {
@@ -69,8 +71,16 @@ class PointCloud(val drawer: Drawer, positions: List<Vector3>) : Animatable() {
                 val f = position.length.map(10.0, 12.0, 0.0, 1.0)
                 //write(ColorRGBa.PINK.toOKLABa().mix(ColorRGBa.BLUE.toOKLABa(), f).toRGBa())
                 write(ColorRGBa.GRAY)
+
+                val activeFaculty = Int.uniform(0, 7)
+
                 for (i in 0 until 8) {
-                    write( (0.toByte()))
+
+                    if (i == activeFaculty) {
+                        write(1.0f)
+                    } else {
+                        write(0.0f)
+                    }
                 }
 
             }
@@ -105,7 +115,7 @@ class PointCloud(val drawer: Drawer, positions: List<Vector3>) : Animatable() {
                     vec4 c = texture(p_tiles, vec3(uv, k));
   
                     
-                    x_fill = c;
+                    x_fill = c * x_color;
                     
                     """.trimIndent()
 
@@ -113,12 +123,7 @@ class PointCloud(val drawer: Drawer, positions: List<Vector3>) : Animatable() {
             out vec4 x_color;
         """.trimIndent()
         vertexTransform = """
-                        
                         vec3 voffset = (x_viewMatrix * vec4(i_offset, 1.0)).xyz;
-                        
-                        
-                        
-                        
                         x_viewMatrix = mat4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
                         vec4 cp = x_projectionMatrix * vec4(voffset, 1.0);
                         vec2 sp = cp.xy / cp.w;
@@ -137,12 +142,27 @@ class PointCloud(val drawer: Drawer, positions: List<Vector3>) : Animatable() {
                             x_color = vec4(1.0, 1.0, 1.0, 1.0);
                         }
                         
+                        x_color = vec4(1.0);
+
+                        float f = 0.0;
+                        for (int i = 0; i < 4; ++i) {
+                            if (i_fac0[i] > 0) {
+                                f += p_filterFades[i];                                                                                
+                            }
+                        }
+                        for (int i = 0; i < 4; ++i) {
+                            if (i_fac1[i] > 0) {
+                                f += p_filterFades[i+4];                                                                                
+                            }
+                        }
+                        
+                        x_color.a *= (f*0.99 +0.01);                        
                         x_position.xyz *= size;
                         x_position.xyz += voffset;
                         
-
-                        
                     """.trimIndent()
+
+
 
         parameter("tiles", tiles)
         parameter("focusFactor", focusFactor)
@@ -151,6 +171,9 @@ class PointCloud(val drawer: Drawer, positions: List<Vector3>) : Animatable() {
     fun draw() {
         updateAnimation()
         drawer.isolated {
+
+            this@PointCloud.shadeStyle.parameter("filterFades", filterModel.states.map { it.fade }.toDoubleArray())
+
             drawer.shadeStyle = this@PointCloud.shadeStyle
             this@PointCloud.shadeStyle.parameter("focusFactor", focusFactor)
             drawer.depthWrite = false
