@@ -12,11 +12,11 @@ class FilterState() : Animatable() {
 
             cancel()
             if (value) {
-                ::fade.animate(1.0, 100, Easing.QuadInOut)
+                ::fade.animate(1.0, 500, Easing.QuadInOut)
             }
 
             if (!value) {
-                ::fade.animate(0.0, 100, Easing.QuadInOut)
+                ::fade.animate(0.0, 500, Easing.QuadInOut)
             }
         }
     }
@@ -27,12 +27,9 @@ class FilterState() : Animatable() {
 class FacultyFilterModel {
     val states = (0 until 8).map { FilterState() }
 
-
-
     fun update() {
         for (state in states) {
             state.updateAnimation()
         }
-
     }
 }
