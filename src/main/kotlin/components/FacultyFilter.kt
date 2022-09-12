@@ -50,7 +50,7 @@ class FacultyFilter(val drawer: Drawer) : Animatable() {
             for ((index, name) in names.withIndex()) {
                 drawer.fill = ColorRGBa.GRAY
                 val r = Rectangle(80.0, drawer.height/2.0 + 140.0 * (index-3.5), 550.0, 80.0)
-                val rt = Rectangle( 80.0 + index * 550.0/ 8.0, drawer.height/2.0+140.0 * 3.5, 550.0/8.0, 80.0 )
+                val rt = Rectangle( 80.0 + index * 550.0/ 8.0, drawer.height/2.0+140.0 * 0.0, 550.0/8.0, 80.0 )
                 val rf = r * fade + rt * (1.0-fade)
                 drawer.rectangle(rf)
                 drawer.fill = ColorRGBa.WHITE
