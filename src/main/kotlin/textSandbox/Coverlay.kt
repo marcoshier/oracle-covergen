@@ -10,6 +10,7 @@ import org.openrndr.draw.*
 import org.openrndr.extra.color.spaces.toOKLABa
 import org.openrndr.extra.imageFit.imageFit
 import org.openrndr.extra.shadestyles.LinearGradientOKLab
+import org.openrndr.internal.colorBufferLoader
 import org.openrndr.math.IntVector2
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
@@ -24,13 +25,13 @@ val fontList = listOf(
 )
 
 
-class Section(val rect: Rectangle, val direction: Int = 0, val qr: ColorBuffer? = null): Animatable() {
+class Section(val rect: Rectangle, val direction: Int = 0): Animatable() {
 
     var currentIndex = 0
     var animatedRect = rect
     var k = 0.0
     var font = loadFont(fontList[direction].first, fontList[direction].second)
-
+    var qr: ColorBuffer? = null
 
     fun fold(index: Int) {
         animate(::k, 1.0, 0).completed.listen {
@@ -96,7 +97,7 @@ class Section(val rect: Rectangle, val direction: Int = 0, val qr: ColorBuffer? 
                 text(text.trimIndent())
             }
         } else {
-            drawer.imageFit(qr, container.x, container.y, 82.0, 82.0, horizontalPosition = 0.5, verticalPosition = 0.5)
+            drawer.imageFit(qr!!, container.x, container.y, 100.0, 100.0, horizontalPosition = 0.5, verticalPosition = 0.5)
         }
 
         drawer.drawStyle.clip = null
@@ -110,9 +111,6 @@ class Coverlay(val drawer: Drawer, val backgroundImage: ColorBuffer? = null, val
     var subdivisionsLeft = data.size - 1
     var allSections = mutableListOf<Section>()
     var currentDirection = 0
-    var qr = loadImage("offline-data/qrs/${data[data.size - 1].toInt() + skipPoints}.png").apply {
-        filter(MinifyingFilter.NEAREST, MagnifyingFilter.NEAREST)
-    }
 
     private val initialK = 0.575 // Space for title
     private var initialFrame = Rectangle.EMPTY
@@ -138,7 +136,7 @@ class Coverlay(val drawer: Drawer, val backgroundImage: ColorBuffer? = null, val
                 else -> frame.rect
             }.also {
                 println(subdivisionsLeft)
-                val newSect = if(subdivisionsLeft != 1) Section(it, currentDirection) else Section(it, currentDirection, qr)
+                val newSect = if(subdivisionsLeft != 1) Section(it, currentDirection) else Section(it, currentDirection)
                 allSections.add(newSect)
 
                 subdivisionsLeft--
@@ -190,10 +188,17 @@ class Coverlay(val drawer: Drawer, val backgroundImage: ColorBuffer? = null, val
             text(text.take((text.length * opacity).toInt()))
         }
 
+
         allSections.forEachIndexed { i, section ->
             val parent = if(i == 0) initialFrame else allSections[i - 1].animatedRect
             val child = if(i == allSections.size - 1) null else allSections[i + 1].animatedRect
             section.draw(drawer, parent, child, data[i + 1])
+        }
+
+        // load qr
+        var proxy = colorBufferLoader.loadFromUrl("file:offline-data/qrs/${data[data.size - 1].toInt() + skipPoints}.png")
+        proxy.colorBuffer?.let {
+            allSections.last().qr = it
         }
 
 
