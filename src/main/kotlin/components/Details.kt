@@ -52,6 +52,8 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
         var zoom = 0.0
 
         fun zoomIn() {
+            ::zoom.cancel()
+            ::coverlayOpacity.cancel()
             ::zoom.animate(1.0, 800, Easing.CubicInOut).completed.listen {
 
                 coverlay = Coverlay(drawer, image, data[index].toList().filter { it != "" }.plus(index.toString())).apply {
@@ -67,6 +69,8 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
         }
 
         fun zoomOut(): PropertyAnimationKey<Double> {
+            ::zoom.cancel()
+            ::coverlayOpacity.cancel()
             if(coverlay != null) {
                 coverlay!!.fold()
                 ::coverlayOpacity.animate(0.0, 400).completed.listen {
@@ -81,21 +85,24 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
     val covers = mutableMapOf<Int, SimpleCover>()
     var activeCover: SimpleCover? = null
         set(value) {
-            println("New value set")
             if(field != value) {
                 if(field != null && value != null) {
+                    println("something to start with and something to end with")
                     field!!.zoomOut().completed.listen {
                         field = value
                         field!!.zoomIn()
                     }
                 } else if (field == null && value != null){
+                    println("nothing to start with and something to end with")
                     field = value
                     field!!.zoomIn()
                 } else if(field != null && value == null) {
-                    println("zooming out")
+                    println("something to start with and nothing to end with")
                     field!!.zoomOut().completed.listen {
                         field = value
                     }
+                } else {
+                    println("nothing to start and nothing to end with")
                 }
             }
         }
