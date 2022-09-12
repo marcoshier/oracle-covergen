@@ -87,20 +87,19 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
         set(value) {
             if(field != value) {
                 if(field != null && value != null) {
-                    println("something to start with and something to end with")
+                    println("something $field to start with and something to end with $value")
                     field!!.zoomOut().completed.listen {
                         field = value
                         field!!.zoomIn()
                     }
                 } else if (field == null && value != null){
-                    println("nothing to start with and something to end with")
+                    println("nothing $field to start with and something to end with  $value")
                     field = value
                     field!!.zoomIn()
                 } else if(field != null && value == null) {
                     println("something to start with and nothing to end with")
-                    field!!.zoomOut().completed.listen {
-                        field = value
-                    }
+                    field!!.zoomOut()
+                    field = null
                 } else {
                     println("nothing to start and nothing to end with")
                 }
@@ -187,8 +186,10 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
             ::dummy.animate(1.0, 500).completed.listen {
                 if(newPoints.isNotEmpty()) {
                     activeCover = covers[newPoints[0]]
+                    println("newcover exists $activeCover")
                 } else {
                     activeCover = null
+                    println("no newcovers $activeCover")
                 }
             }
         }
