@@ -69,7 +69,7 @@ fun main() {
 
             mouse.buttonUp.listen {
                 touchPoints.buttonUp(it)
-                facultyFilter.buttonUp(it)
+               // facultyFilter.buttonUp(it)
             }
 
             mouse.dragged.listen {

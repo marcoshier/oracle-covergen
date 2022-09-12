@@ -44,16 +44,6 @@ class FacultyFilter(val drawer: Drawer, val model: FacultyFilterModel) : Animata
     }
 
     fun buttonUp(mouseEvent: MouseEvent) {
-        fadeIn()
-        println("clicked")
-        for(i in faculties.indices) {
-            if(mouseEvent.position in rectangle(i)) {
-                mouseEvent.cancelPropagation()
-                model.states[i].visible = true
-            } else {
-                model.states[i].visible = false
-            }
-        }
     }
 
     val faculties = listOf(

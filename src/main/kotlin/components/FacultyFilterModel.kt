@@ -25,7 +25,7 @@ class FilterState() : Animatable() {
         }
     }
 
-    var fade: Double = 1.0
+    var fade: Double = 0.0
 }
 
 class FacultyFilterModel {
