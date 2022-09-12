@@ -118,7 +118,7 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
 
                 c.dead = false
                 c.removing = true
-
+                c.proxy?.cancel()
                 c.apply {
                     c.cancel()
                     c::width.cancel()
@@ -161,7 +161,7 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
         for (i in added) {
 
             val simpleCover = covers.getOrPut(i) { SimpleCover(i) }
-            simpleCover.proxy = colorBufferLoader.loadFromUrl("file:offline-data/covers/png/${skipPoints + i}.png")
+            simpleCover.proxy = colorBufferLoader.loadFromUrl("file:offline-data/covers/png/${skipPoints + i}.png", queue = false)
 
             simpleCover.dead = false
             simpleCover.removing = false
@@ -202,15 +202,17 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
     fun draw() {
         fade.updateAnimation()
 
-        if (fade.opacity < 0.5) {
-            return
-        }
 
         for (cover in covers.values) {
             cover.proxy!!.events.loaded.deliver()
             cover.updateAnimation()
         }
         activeCover?.updateAnimation()
+
+
+        if (fade.opacity < 0.5) {
+            return
+        }
 
 
         drawer.isolated {
@@ -224,7 +226,9 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
                 val dynamicRect =  coverlayFrame * cover.zoom + minimizedRect * (1.0 - cover.zoom)
                 drawer.rectangle(dynamicRect)
 
+                cover.proxy?.touch()
                 val cb = cover.proxy?.colorBuffer
+
                 if(cb != null) {
                     drawer.imageFit(cb, dynamicRect)
                 }

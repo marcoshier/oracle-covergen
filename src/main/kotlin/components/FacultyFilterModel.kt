@@ -2,13 +2,16 @@ package components
 
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.easing.Easing
+import org.openrndr.events.Event
 
 class FilterState() : Animatable() {
 
+    val stateChanged = Event<Unit>()
     var visible: Boolean = true
     set(value) {
         if (value != field) {
             field = value
+
 
             cancel()
             if (value) {
@@ -18,6 +21,7 @@ class FilterState() : Animatable() {
             if (!value) {
                 ::fade.animate(0.0, 500, Easing.QuadInOut)
             }
+            stateChanged.trigger(Unit)
         }
     }
 
@@ -25,7 +29,20 @@ class FilterState() : Animatable() {
 }
 
 class FacultyFilterModel {
-    val states = (0 until 8).map { FilterState() }
+    val states:List<FilterState> = (0 until 8).map { FilterState() }
+
+
+    init {
+        states.forEach {
+            it.stateChanged.listen {
+                if (states.none { it.visible }) {
+                    states.forEach {
+                        it.visible = true
+                    }
+                }
+            }
+        }
+    }
 
     fun update() {
         for (state in states) {
