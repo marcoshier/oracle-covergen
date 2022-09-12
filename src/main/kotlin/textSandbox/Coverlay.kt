@@ -111,7 +111,7 @@ class Section(val rect: Rectangle, val direction: Int = 0): Animatable() {
 
 }
 
-class Coverlay(val drawer: Drawer, val backgroundImage: ColorBuffer? = null, val data: List<String>) {
+class Coverlay(val drawer: Drawer, val proxy: ColorBufferProxy? = null, val data: List<String>) {
 
 
     var subdivisionsLeft = data.size - 1
@@ -173,12 +173,9 @@ class Coverlay(val drawer: Drawer, val backgroundImage: ColorBuffer? = null, val
         drawer.drawStyle.clip = initialFrame
 
         drawer.stroke = null
-        if(backgroundImage != null) {
+        if(proxy!!.state == ColorBufferProxy.State.LOADED) {
             drawer.opacify(opacity)
-            drawer.imageFit(backgroundImage, initialFrame)
-        } else {
-            drawer.fill = ColorRGBa.PINK
-            drawer.rectangle(initialFrame)
+            drawer.imageFit(proxy.colorBuffer!!, initialFrame)
         }
 
         drawer.opacify(1.0)
@@ -217,37 +214,4 @@ fun Drawer.opacify(o: Double) {
         parameter("opacity", o)
     }
 
-}
-
-fun main() = application {
-    configure {
-        width = 1080
-        height = 1920
-        position = IntVector2(2000, -2120)
-    }
-    program {
-        val testData = listOf("Houtbouwmythes ontkracht: het onderscheid tussen fabels en feiten", "van der Lugt, P. (TU Delft Environmental Technology and Design)", "Faculty name for example", "Department thing", "24-09-18")
-        val c = Coverlay(drawer, data = testData).apply {
-            subdivide(Section(drawer.bounds.offsetEdges(-100.0)))
-            unfold()
-        }
-
-        var folded = false
-        keyboard.keyUp.listen {
-            if(it.key == KEY_SPACEBAR) {
-                if (!folded) {
-                    c.fold()
-                    folded = true
-                } else {
-                    c.unfold()
-                    folded = false
-                }
-            }
-        }
-        extend {
-
-            c.draw(1.0)
-
-        }
-    }
 }
