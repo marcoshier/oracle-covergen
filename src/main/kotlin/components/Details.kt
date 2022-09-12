@@ -59,7 +59,9 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
                 }
 
                 ::coverlayOpacity.animate(1.0, 1000).completed.listen {
-                    coverlay!!.unfold()
+                    if(coverlay != null) {
+                        coverlay!!.unfold()
+                    }
                 }
             }
         }
@@ -176,12 +178,13 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
             dummy = 0.0
             ::dummy.cancel()
             ::dummy.animate(1.0, 500).completed.listen {
-            if(newPoints.isNotEmpty()) {
-                activeCover = covers[newPoints[0]]
-            } else {
-                activeCover = null
+                if(newPoints.isNotEmpty()) {
+                    activeCover = covers[newPoints[0]]
+                } else {
+                    activeCover = null
+                }
             }
-        } }
+        }
 
     }
 
