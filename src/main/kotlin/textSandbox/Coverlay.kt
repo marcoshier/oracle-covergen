@@ -31,7 +31,7 @@ class Section(val rect: Rectangle, val direction: Int = 0): Animatable() {
     var animatedRect = rect
     var k = 0.0
     var font = loadFont(fontList[direction].first, fontList[direction].second)
-    var qr: ColorBuffer? = null
+    var proxy: ColorBufferProxy? = null
 
     fun fold(index: Int) {
         animate(::k, 1.0, 0).completed.listen {
@@ -88,7 +88,14 @@ class Section(val rect: Rectangle, val direction: Int = 0): Animatable() {
 
         drawer.drawStyle.clip = animatedRect
 
-        if(qr == null) {
+
+        if(proxy != null) {
+            if(proxy!!.state == ColorBufferProxy.State.LOADED) {
+                proxy!!.colorBuffer?.let {
+                    drawer.imageFit(it, container.x, container.y, 100.0, 100.0, horizontalPosition = 0.5, verticalPosition = 0.5)
+                }
+            }
+        } else {
             drawer.fill = ColorRGBa.WHITE.opacify(k)
             drawer.fontMap = font
 
@@ -96,9 +103,8 @@ class Section(val rect: Rectangle, val direction: Int = 0): Animatable() {
                 box = container
                 text(text.trimIndent())
             }
-        } else {
-            drawer.imageFit(qr!!, container.x, container.y, 100.0, 100.0, horizontalPosition = 0.5, verticalPosition = 0.5)
         }
+
 
         drawer.drawStyle.clip = null
     }
@@ -116,8 +122,6 @@ class Coverlay(val drawer: Drawer, val backgroundImage: ColorBuffer? = null, val
     private var initialFrame = Rectangle.EMPTY
 
     fun subdivide(frame: Section) {
-        println(data)
-
         if(currentDirection == 0) {
             initialFrame = frame.rect
             currentDirection = 1
@@ -195,11 +199,9 @@ class Coverlay(val drawer: Drawer, val backgroundImage: ColorBuffer? = null, val
             section.draw(drawer, parent, child, data[i + 1])
         }
 
-        // load qr
-        var proxy = colorBufferLoader.loadFromUrl("file:offline-data/qrs/${data[data.size - 1].toInt() + skipPoints}.png")
-        proxy.colorBuffer?.let {
-            allSections.last().qr = it
-        }
+
+        val proxy = colorBufferLoader.loadFromUrl("file:offline-data/qrs/${data[data.size - 1].toInt() + skipPoints}.png")
+        allSections.last().proxy = proxy
 
 
         drawer.drawStyle.clip = null
