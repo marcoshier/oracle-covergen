@@ -17,6 +17,7 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
 
     class Fade : Animatable() {
         var opacity = 0.0
+        var dummy = 0.0
     }
     val fade = Fade()
 
@@ -33,7 +34,9 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
     }
 
 
-    inner class SimpleCover : Animatable() {
+    var coverlayFrame = Rectangle(175.0, 350.0, 1080.0 - 350.0, 1920.0 - 700.0)
+
+    inner class SimpleCover(val index: Int) : Animatable() {
         var width = 0.0
         var height = 0.0
         var x = 40.0
@@ -42,84 +45,58 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
         var dead = false
         var dummy = 0.0
         var proxy: ColorBufferProxy? = null
+
         var image: ColorBuffer? = null
+        var coverlay: Coverlay? = null
+        var coverlayOpacity = 0.0
         var zoom = 0.0
 
         fun zoomIn() {
-            ::zoom.animate(1.0, 800, Easing.CubicInOut)
+            ::zoom.animate(1.0, 800, Easing.CubicInOut).completed.listen {
+
+                coverlay = Coverlay(drawer, image, data[index].toList().filter { it != "" }.plus(index.toString())).apply {
+                    subdivide(Section(coverlayFrame))
+                }
+
+                ::coverlayOpacity.animate(1.0, 1000).completed.listen {
+                    coverlay!!.unfold()
+                }
+            }
         }
 
         fun zoomOut(): PropertyAnimationKey<Double> {
-            val duration = if(zoom != 0.0) 1000L else 0
-            println("ZOOM OUT $duration")
-            return ::zoom.animate(0.0, duration, Easing.CubicInOut)
-        }
-    }
-    inner class MainCover: Animatable() {
-
-        var coverlay: Coverlay? = null
-        var frame = Rectangle(100.0, 100.0, 1080.0 - 200.0, 1920.0 - 200.0)
-        var opacity = 0.0
-        var dummy = 0.0
-
-        private fun reveal(cover: SimpleCover): PropertyAnimationKey<Double> {
-            cover.zoomIn()
-            return ::opacity.animate(1.0, 1200, predelayInMs = 800)
-        }
-
-        private fun unreveal(): PropertyAnimationKey<Double> {
-            val duration = if(coverlay != null) 1000L else 0
             if(coverlay != null) {
                 coverlay!!.fold()
-            }
-            return ::opacity.animate(0.0, duration)
-        }
-
-        var index = -1
-            set(value) {
-                dummy = 0.0
-                println("canceling")
-                cancel()
-                ::dummy.animate(1.0, 500).completed.listen {
-                    if (value != -1 && field != value) {
-                        println("unrevealing 1")
-                        unreveal().completed.listen {
-                            val check = if(field == - 1) value else field
-                            require(check != -1)
-                            require(covers.containsKey(check)) {
-                                "$check is not in covers"
-                            }
-                            covers[check]!!.zoomOut().completed.listen {
-                                field = value
-                                val coverlayData = data[field].toList().filter { it != "" }.plus(field.toString())
-                                coverlay = Coverlay(drawer, covers[field]!!.image, coverlayData).apply {
-                                    subdivide(Section(frame))
-                                }
-
-                                println("revealing 1")
-                                reveal(covers[field]!!).completed.listen {
-                                    println("revealed 1")
-                                    coverlay!!.unfold()
-                                }
-                            }
-                        }
-                    } else if (value == -1 && coverlay != null) {
-                        println("unrevealing 2")
-                        unreveal().completed.listen {
-                            println("unrevealed 2")
-                            covers[field]!!.zoomOut()
-                            coverlay = null
-                            dummy = 0.0
-                        }
-                    }
+                ::coverlayOpacity.animate(0.0, 400).completed.listen {
+                    coverlay = null
                 }
-
             }
+            return ::zoom.animate(0.0, 800, Easing.CubicInOut, 400)
+        }
     }
 
 
     val covers = mutableMapOf<Int, SimpleCover>()
-    val mainCover = MainCover()
+    var activeCover: SimpleCover? = null
+        set(value) {
+            println("New value set")
+            if(field != value) {
+                if(field != null && value != null) {
+                    field!!.zoomOut().completed.listen {
+                        field = value
+                        field!!.zoomIn()
+                    }
+                } else if (field == null && value != null){
+                    field = value
+                    field!!.zoomIn()
+                } else if(field != null && value == null) {
+                    println("zooming out")
+                    field!!.zoomOut().completed.listen {
+                        field = value
+                    }
+                }
+            }
+        }
 
     fun updateActive(oldPoints: List<Int>, newPoints: List<Int>) {
 
@@ -154,7 +131,7 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
             val ax = (index % 10) * 60.0 + 40.0
             val ay = (index / 10) * 60.0 + 40.0
 
-            val simpleCover = covers.getOrPut(i) { SimpleCover() }
+            val simpleCover = covers.getOrPut(i) { SimpleCover(index) }
             simpleCover.dead = false
 
             simpleCover.apply {
@@ -175,7 +152,7 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
 
         for (i in added) {
 
-            val simpleCover = covers.getOrPut(i) { SimpleCover() }
+            val simpleCover = covers.getOrPut(i) { SimpleCover(i) }
             simpleCover.proxy = colorBufferLoader.loadFromUrl("file:offline-data/covers/png/${skipPoints + i}.png")
 
             simpleCover.dead = false
@@ -192,13 +169,20 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
 
         }
 
-        if(newPoints.isNotEmpty()) {
-            mainCover.index = newPoints[0]
-        } else {
-            mainCover.index = -1
-        }
-
         covers.values.removeIf { it.dead }
+
+
+        fade.apply {
+            dummy = 0.0
+            ::dummy.cancel()
+            ::dummy.animate(1.0, 500).completed.listen {
+            if(newPoints.isNotEmpty()) {
+                activeCover = covers[newPoints[0]]
+            } else {
+                activeCover = null
+            }
+        } }
+
     }
 
 
@@ -206,13 +190,12 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
 
     fun draw() {
         fade.updateAnimation()
-        mainCover.updateAnimation()
 
         if (fade.opacity < 0.5) {
             return
         }
 
-        for (cover in covers.values.map { it }) {
+        for (cover in covers.values) {
             cover.proxy!!.events.loaded.deliver()
             cover.updateAnimation()
         }
@@ -226,18 +209,20 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
 
             for (cover in covers.values) {
                 val minimizedRect = Rectangle(cover.x - cover.width / 2.0, cover.y, cover.width, cover.height)
-                val dynamicRect =  mainCover.frame * cover.zoom + minimizedRect * (1.0 - cover.zoom)
+                val dynamicRect =  coverlayFrame * cover.zoom + minimizedRect * (1.0 - cover.zoom)
                 drawer.rectangle(dynamicRect)
 
                 val cb = cover.proxy?.colorBuffer
                 if(cb != null) {
                     drawer.imageFit(cb, dynamicRect)
                 }
+
+
+                if(cover.coverlay != null) {
+                    cover.coverlay!!.draw(cover.coverlayOpacity)
+                }
             }
 
-            if(mainCover.coverlay != null) {
-                mainCover.coverlay!!.draw(mainCover.opacity)
-            }
 
 
 //            drawer.text("hallo dan?", 40.0, 40.0)
