@@ -14,30 +14,52 @@ import org.openrndr.shape.Rectangle
 
 class DateFilter(val drawer: Drawer): Animatable(){
 
-    lateinit var rect: Rectangle
-    lateinit var rail: LineSegment
+    var rect = Rectangle(((1920 / 2) * 3) - 60.0, drawer.height / 2.0 - 400.0, 40.0, 800.0)
+    var rail = LineSegment(rect.center.x, rect.y, rect.center.x, rect.y + rect.height)
+
+    val font1 = loadFont("data/fonts/RobotoCondensed-Bold.ttf", 38.0)
+
     inner class Selector(var pos: Double = 0.5) {
+        var year = 0
+
+        init {
+            year = map(0.0, 1.0, 2022.0, 1880.0, pos).toInt()
+        }
+
         fun draw() {
+
+            year = map(0.0, 1.0, 2022.0, 1880.0, pos).toInt()
+
+            val center = rail.position(pos)
+
             drawer.stroke = null
             drawer.fill = ColorRGBa.WHITE
-            drawer.circle(rail.position(pos), 25.0)
+            drawer.text(year.toString(), center.x - 100.0, center.y)
+            drawer.circle(center, 25.0)
         }
     }
     val selectors = listOf(Selector(0.3), Selector(0.8))
     var closestSelector: Selector? = null
 
-    fun dragged(mouseEvent: MouseEvent) {
-        if (mouseEvent.position in rect && closestSelector != null) {
-            val mappedPosition = map(0.0, 1.0, rect.y, rect.y + rect.height, mouseEvent.position.y)
+    var range = listOf(selectors[0].year, selectors[1].year).sorted()
 
-            closestSelector!!.pos = if(closestSelector == selectors[0]) {
+    fun dragged(mouseEvent: MouseEvent) {
+        if (mouseEvent.position in rect.offsetEdges(80.0)) {
+            mouseEvent.cancelPropagation()
+
+            if(closestSelector == null) {
+                closestSelector = selectors.minBy { rail.position(it.pos).distanceTo(mouseEvent.position)}
+            }
+
+            val mappedPosition = map(rect.y, rect.y + rect.height, 0.0, 1.0, mouseEvent.position.y)
+
+            closestSelector?.pos = if(closestSelector == selectors[0]) {
                 mappedPosition.coerceIn(0.0, selectors[1].pos - 0.1)
             } else {
                 mappedPosition.coerceIn(selectors[0].pos + 0.1, 1.0)
             }
         }
     }
-
 
     fun buttonDown(mouseEvent: MouseEvent) {
         if (mouseEvent.position in rect) {
@@ -47,14 +69,17 @@ class DateFilter(val drawer: Drawer): Animatable(){
     }
 
     fun buttonUp(mouseEvent: MouseEvent) {
+        if (mouseEvent.position in rect) {
+            mouseEvent.cancelPropagation()
+            closestSelector = null
+        }
     }
-
-
-    val font1 = loadFont("data/fonts/RobotoCondensed-Bold.ttf", 38.0)
 
     fun draw() {
         drawer.isolated {
             drawer.defaults()
+
+            range = listOf(selectors[0].year, selectors[1].year).sorted()
 
             rect = Rectangle(width - 60.0, height / 2.0 - 400.0, 40.0, 800.0)
             rail = LineSegment(rect.center.x, rect.y, rect.center.x, rect.y + rect.height)

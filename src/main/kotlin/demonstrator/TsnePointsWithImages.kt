@@ -1,3 +1,4 @@
+/*
 package demonstrator
 
 import classes.Entry
@@ -73,7 +74,7 @@ fun main() = application {
 
         val overlays = entries.map {
             val initialFrame = Rectangle(0.0, 0.0, 540.0, 960.0)
-            val c = Coverlay(drawer, data = it)
+            val c = Coverlay(drawer, data = it, listOf(), 0)
             c.subdivide(Section(initialFrame))
             c.unfold()
             c
@@ -118,10 +119,12 @@ fun main() = application {
             }
         }
 
+*/
 /*        extend(ScreenRecorder()) {
             maximumDuration = 15.0
             frameRate = 60
-        }*/
+        }*//*
+
 
         val anim = object: Animatable() {
             var k = 0.0
@@ -172,6 +175,7 @@ fun main() = application {
             contentScale = 4.0
             trigger()
         }
+*/
 /*
         extend(Post()) {
             val cc = ColorCorrection()
@@ -191,7 +195,8 @@ fun main() = application {
                 grayscale(1.0/3.0, 1.0/3.0, 1.0/3.0) * t + Matrix55.IDENTITY * (1.0-t)
             }
         }
-*/
+*//*
+
 
 
         extend {
@@ -256,7 +261,8 @@ fun main() = application {
             drawer.vertexBufferInstances(listOf(vb), listOf(transforms), DrawPrimitive.TRIANGLE_STRIP, nVertex)
             drawer.drawStyle.blendMode = BlendMode.BLEND
 
-            drawer.defaults()/*
+            drawer.defaults()*/
+/*
             if(imageState.activeIndex != -1) {
                 if (imageState.image != null) {
                     drawer.image(imageState.image!!, 1050.0, 0.0)
@@ -280,9 +286,11 @@ fun main() = application {
 
                     e.printStackTrace()
                 }
-            }*/
+            }*//*
+
 
         }
     }
 
 }
+*/
