@@ -176,7 +176,7 @@ class Coverlay(val drawer: Drawer, val proxy: ColorBufferProxy? = null, val data
             drawer.opacify(opacity)
             drawer.imageFit(proxy.colorBuffer!!, initialFrame)
         } else {
-            drawer.fill = ColorRGBa.BLUE
+            drawer.fill = ColorRGBa.TRANSPARENT
             drawer.rectangle(initialFrame)
         }
 

@@ -40,7 +40,6 @@ class DataModel {
         val llbounds = Rectangle(-180.0, 0.0, 360.0, 180.0)
         val latlon = pointsData.map { it.map(bounds, llbounds) }
 
-        println(pointsData.size)
 
         return latlon.map { Spherical(it.x, it.y, 10.0).cartesian }
     }
@@ -58,7 +57,6 @@ class DataModel {
                 it.ogdata["Date"] as String
             )
         }
-        println(entries.size)
         require(points.size == entries.size)
         return entries
     }
@@ -97,11 +95,10 @@ class DataModel {
         val correctedFaculties = data.map {
             val correctedFaculty = lookUp[it.faculty.lowercase()]
             correctedFaculty
-        }.also { println(it.size) }
+        }
 
         val indexes = correctedFaculties.mapIndexed { i, it ->
             if(it != null) {
-                println("${data[i].title} - $it - ${facultyNames.indexOf(it)}")
                 facultyNames.indexOf(it)
             } else {
                 -1
@@ -154,11 +151,6 @@ class DataModel {
 
         return kdtree.findAllInRadius(lookAt, selectionRadius).sortedBy { it.distanceTo(lookAt) }.map {
             pointIndices[it] ?: error("point not found")
-        }.apply {
-            println("center item is ${this.firstOrNull()}")
-            this.firstOrNull()?.let {
-                println("made in the amazing year ${data[it].date}")
-            }
         }
     }
 }

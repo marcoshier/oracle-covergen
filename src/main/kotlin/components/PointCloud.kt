@@ -88,8 +88,6 @@ class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: Facu
                 val activeYear = years[index]
                 //println(activeYear)
                 write(activeYear)
-
-                println("$activeYear  ${dataModel.data[index].title}")
             }
         }
     }
