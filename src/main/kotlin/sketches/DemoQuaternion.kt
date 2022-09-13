@@ -79,6 +79,7 @@ fun main() {
             mouse.dragged.listen {
                 touchPoints.dragged(it)
                 facultyFilter.dragged(it)
+                dateFilter.dragged(it)
             }
 
             val camera = extend(QuaternionCamera())
