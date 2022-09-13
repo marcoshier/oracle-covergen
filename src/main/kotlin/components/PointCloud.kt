@@ -6,15 +6,16 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.extra.color.spaces.toOKLABa
 import org.openrndr.extra.noise.uniform
+import org.openrndr.extra.noise.value
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import org.openrndr.math.map
 
 class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: FacultyFilterModel) : Animatable() {
 
-    val articleFaculties = dataModel.data.map { it.faculty }
     val positions = dataModel.points
     val tiles = arrayTexture(4096,4096,2)
+    val facultyIndexes = dataModel.facultyIndexes
 
     init {
         for (i in 0 until 2) {
@@ -58,7 +59,6 @@ class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: Facu
         }
     }
 
-    var counter = 0
     private val offsets = vertexBuffer(
         vertexFormat {
             attribute("offset", VertexElementType.VECTOR3_FLOAT32)
@@ -75,17 +75,16 @@ class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: Facu
                 //write(ColorRGBa.PINK.toOKLABa().mix(ColorRGBa.BLUE.toOKLABa(), f).toRGBa())
                 write(ColorRGBa.GRAY)
 
-                val faculty = articleFaculties[index]
-                val activeFaculty = filterModel.facultyNames.indexOfFirst {
-                    // not pretty but short and does the job
-                    faculty.contains(it) || faculty.contains(it.lowercase()) || it.contains(faculty) || it.contains(faculty.lowercase()) || faculty.contains("the Built Environment") || faculty.contains("and Materials Engineering")
-                }
+                val activeFaculty = facultyIndexes[index]
+               // println(activeFaculty)
 
                 for (j in 0 until 8) {
                     val value = if (j == activeFaculty) 1 else 0
+                    print(value)
                     write(value.toFloat())
                 }
-
+                print("  $activeFaculty")
+                println()
             }
         }
     }

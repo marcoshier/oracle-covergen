@@ -20,9 +20,9 @@ fun main() {
         configure {
             if (!prod) {
                 width = ((1920 / 2) * 3) / 2 + 1080 / 2
-                position = IntVector2(1400, -2100)
+                //position = IntVector2(1400, -2100)
                 height = (1920) / 2
-                hideWindowDecorations = true
+                hideWindowDecorations = false
             } else {
                 width = ((1920 / 2) * 3)  + 1080
                 height = (1920)
@@ -37,7 +37,8 @@ fun main() {
 
             extend(Screenshots())
 
-            val facultyFilterModel = FacultyFilterModel()
+            val facultyFilterModel = FacultyFilterModel(dataModel)
+            var dateFilter = DateFilter(drawer)
             val guides = SphericalGuides(drawer)
             val pointCloud = PointCloud(drawer, dataModel, facultyFilterModel)
             val selector = SelectorWidget(drawer)
@@ -53,6 +54,7 @@ fun main() {
                 miniDetails.draw()
                 touchPoints.draw()
                 facultyFilter.draw()
+                dateFilter.draw()
             }
 
             val details = Details(drawer, dataModel.data)

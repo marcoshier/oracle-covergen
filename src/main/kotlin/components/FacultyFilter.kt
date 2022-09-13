@@ -9,6 +9,7 @@ import org.openrndr.draw.isolated
 import org.openrndr.draw.loadFont
 import org.openrndr.extra.shapes.RoundedRectangle
 import org.openrndr.extra.shapes.roundedRectangle
+import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
 
 class FacultyFilter(val drawer: Drawer, val model: FacultyFilterModel) : Animatable() {
@@ -49,7 +50,7 @@ class FacultyFilter(val drawer: Drawer, val model: FacultyFilterModel) : Animata
 
 
     private fun rectangle(index: Int): Rectangle {
-        return Rectangle(80.0, drawer.height/2.0 + 120.0 * (index - 4), 100.0, 100.0)
+        return Rectangle(20.0, drawer.height/2.0 + 120.0 * (index - 4), 100.0, 100.0)
     }
 
     val font1 = loadFont("data/fonts/RobotoCondensed-Bold.ttf", 36.0)

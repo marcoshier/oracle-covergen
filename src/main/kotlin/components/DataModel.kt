@@ -3,6 +3,9 @@ package components
 import classes.Entry
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.google.gson.Gson
+import org.apache.commons.csv.CSVFormat
+import org.apache.commons.csv.CSVParser
+import org.openrndr.color.ColorRGBa
 import org.openrndr.events.Event
 import org.openrndr.extra.kdtree.kdTree
 import org.openrndr.math.Spherical
@@ -13,6 +16,8 @@ import org.openrndr.shape.bounds
 import org.openrndr.shape.map
 import java.io.File
 import java.io.FileReader
+import java.nio.file.Paths
+import kotlin.io.path.bufferedReader
 
 class ActivePointsChangedEvent(val oldPoints: List<Int>, val newPoints: List<Int>)
 
@@ -42,7 +47,6 @@ class DataModel {
     val points = loadPoints()
 
 
-
     private fun loadArticleData(): List<ArticleData> {
         val articleData = Gson().fromJson(FileReader(File("offline-data/graph/mapped-v2r1.json")),Array<Entry>::class.java)
         val entries = articleData.drop(skipPoints).map {
@@ -52,6 +56,54 @@ class DataModel {
         return entries
     }
     val data = loadArticleData()
+
+    val facultyNames = listOf(
+        "Architecture and the Built Environment",
+        "Aerospace Engineering (AE)",
+        "Applied Sciences (AS)",
+        "Civil Engineering and Geosciences (CEG)",
+        "Electrical Engineering, Mathematics & Computer Science (EEMCS)",
+        "Industrial Design Engineering (IDE)",
+        "Mechanical, Maritime and Materials Engineering (3mE)",
+        "Technology, Policy and Management (TPM)"
+    )
+    var facultyColors = listOf(
+        ColorRGBa.fromHex("2D5BFF"),
+        ColorRGBa.fromHex("A5A5A5"),
+        ColorRGBa.fromHex("C197FB"),
+        ColorRGBa.fromHex("E1A400"),
+        ColorRGBa.fromHex("19CC78"),
+        ColorRGBa.fromHex("00A8B4"),
+        ColorRGBa.fromHex("E54949"),
+        ColorRGBa.fromHex("FFAD8F")
+    )
+    var facultyToColor = facultyNames zip facultyColors
+
+    private fun loadFacultyIndexes(): List<Int> {
+        val lookUp = mutableMapOf<String, String>() // List<
+
+        val allText = Paths.get("offline-data/faculty-corrections.csv").bufferedReader()
+        CSVParser(allText, CSVFormat.newFormat(';')).onEach {
+            lookUp[it.get(0)] = it.get(1)
+        }
+
+        val correctedFaculties = data.map {
+            val correctedFaculty = lookUp[it.faculty.lowercase()]
+            correctedFaculty
+        }.also { println(it.size) }
+
+        val indexes = correctedFaculties.mapIndexed { i, it ->
+            if(it != null) {
+                println("${data[i].title} - $it - ${facultyNames.indexOf(it)}")
+                facultyNames.indexOf(it)
+            } else {
+                -1
+            }
+        }
+
+        return indexes
+    }
+    val facultyIndexes = loadFacultyIndexes()
 
 
 

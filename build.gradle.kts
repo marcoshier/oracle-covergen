@@ -122,6 +122,7 @@ dependencies {
             runtimeOnly(libs.jackson.json)
         }
     }
+    implementation("org.apache.commons", "commons-csv", "1.5")
     implementation(kotlin("stdlib-jdk8"))
     testImplementation(libs.junit)
 }
