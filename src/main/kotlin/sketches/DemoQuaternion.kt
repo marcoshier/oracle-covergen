@@ -73,6 +73,7 @@ fun main() {
 
             mouse.buttonUp.listen {
                 touchPoints.buttonUp(it)
+                dateFilter.buttonDown(it)
                // facultyFilter.buttonUp(it)
             }
 

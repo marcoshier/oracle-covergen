@@ -23,23 +23,27 @@ class DateFilter(val drawer: Drawer): Animatable(){
             drawer.circle(rail.position(pos), 25.0)
         }
     }
-    val selectors = listOf(Selector(0.4), Selector(0.6))
+    val selectors = listOf(Selector(0.3), Selector(0.8))
+    var closestSelector: Selector? = null
 
     fun dragged(mouseEvent: MouseEvent) {
-        if (mouseEvent.position in rect) {
-            mouseEvent.cancelPropagation()
-            val closest = selectors.minBy { rail.position(it.pos).distanceTo(mouseEvent.position)}
+        if (mouseEvent.position in rect && closestSelector != null) {
             val mappedPosition = map(0.0, 1.0, rect.y, rect.y + rect.height, mouseEvent.position.y)
 
-            closest.pos = if(closest == selectors[0]) {
-                mappedPosition.coerceIn(0.0, selectors[1].pos - 0.01)
+            closestSelector!!.pos = if(closestSelector == selectors[0]) {
+                mappedPosition.coerceIn(0.0, selectors[1].pos - 0.1)
             } else {
-                mappedPosition.coerceIn(selectors[0].pos + 0.01, 1.0)
+                mappedPosition.coerceIn(selectors[0].pos + 0.1, 1.0)
             }
         }
     }
 
+
     fun buttonDown(mouseEvent: MouseEvent) {
+        if (mouseEvent.position in rect) {
+            mouseEvent.cancelPropagation()
+            closestSelector = selectors.minBy { rail.position(it.pos).distanceTo(mouseEvent.position)}
+        }
     }
 
     fun buttonUp(mouseEvent: MouseEvent) {
