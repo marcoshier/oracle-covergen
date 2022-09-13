@@ -33,7 +33,7 @@ class ArticleData(val title: String, val author:String, val faculty:String, val 
 class DataModel {
 
     private fun loadPoints(): List<Vector3> {
-        val pointsData = csvReader().readAllWithHeader(File("offline-data/graph/graph-tsne-d-100-i-100-p25-v2.csv")).drop(skipPoints).map {
+        val pointsData = csvReader().readAllWithHeader(File("offline-data/graph/corrected.csv")).drop(skipPoints).map {
             Vector2(it["x"]!!.toDouble(), it["y"]!!.toDouble())
         }
         val bounds = pointsData.bounds
@@ -48,11 +48,18 @@ class DataModel {
 
 
     private fun loadArticleData(): List<ArticleData> {
-        val articleData = Gson().fromJson(FileReader(File("offline-data/graph/mapped-v2r1.json")),Array<Entry>::class.java)
-        val entries = articleData.drop(skipPoints).map {
-            ArticleData(it.ogdata["Title"] as String, it.ogdata["Author"] as String, it.ogdata["Faculty"] as String, it.ogdata["Department"] as String, it.ogdata["Date"] as String)
+        val entries = Gson().fromJson(FileReader(File("offline-data/graph/mapped-v2r1.json")), Array<Entry>::class.java)
+            .drop(skipPoints).map {
+            ArticleData(
+                it.ogdata["Title"] as String,
+                it.ogdata["Author"] as String,
+                it.ogdata["Faculty"] as String,
+                it.ogdata["Department"] as String,
+                it.ogdata["Date"] as String
+            )
         }
         println(entries.size)
+        require(points.size == entries.size)
         return entries
     }
     val data = loadArticleData()
@@ -105,6 +112,14 @@ class DataModel {
     }
     val facultyIndexes = loadFacultyIndexes()
 
+    val years = data.map {
+        val year = it.date.split("-").first()
+        if(year.length != 4) {
+            0f
+        } else {
+            year.toFloat()
+        }}
+
 
 
     /**
@@ -134,8 +149,16 @@ class DataModel {
     var selectionRadius = 0.24
 
     fun findActivePoints(): List<Int> {
+
+        require(data.size == points.size)
+
         return kdtree.findAllInRadius(lookAt, selectionRadius).sortedBy { it.distanceTo(lookAt) }.map {
             pointIndices[it] ?: error("point not found")
+        }.apply {
+            println("center item is ${this.firstOrNull()}")
+            this.firstOrNull()?.let {
+                println("made in the amazing year ${data[it].date}")
+            }
         }
     }
 }

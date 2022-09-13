@@ -11,11 +11,12 @@ import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import org.openrndr.math.map
 
-class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: FacultyFilterModel) : Animatable() {
+class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: FacultyFilterModel, var dateFilter: DateFilter) : Animatable() {
 
     val positions = dataModel.points
     val tiles = arrayTexture(4096,4096,2)
     val facultyIndexes = dataModel.facultyIndexes
+    val years = dataModel.years
 
     init {
         for (i in 0 until 2) {
@@ -65,6 +66,7 @@ class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: Facu
             attribute("color", VertexElementType.VECTOR4_FLOAT32)
             attribute("fac0", VertexElementType.VECTOR4_FLOAT32)
             attribute("fac1", VertexElementType.VECTOR4_FLOAT32)
+            attribute("year", VertexElementType.FLOAT32)
         },
         positions.size
     ).apply {
@@ -76,15 +78,18 @@ class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: Facu
                 write(ColorRGBa.GRAY)
 
                 val activeFaculty = facultyIndexes[index]
-               // println(activeFaculty)
 
                 for (j in 0 until 8) {
                     val value = if (j == activeFaculty) 1 else 0
-                    print(value)
                     write(value.toFloat())
                 }
-                print("  $activeFaculty")
-                println()
+
+
+                val activeYear = years[index]
+                //println(activeYear)
+                write(activeYear)
+
+                println("$activeYear  ${dataModel.data[index].title}")
             }
         }
     }
@@ -148,17 +153,24 @@ class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: Facu
 
                         float f = 0.0;
                         for (int i = 0; i < 4; ++i) {
-                            if (i_fac0[i] > 0) {
+                            if (i_fac0[i] > 0.5) {
                                 f += p_filterFades[i];                                                                                
                             }
                         }
                         for (int i = 0; i < 4; ++i) {
-                            if (i_fac1[i] > 0) {
+                            if (i_fac1[i] > 0.5) {
                                 f += p_filterFades[i+4];                                                                                
                             }
                         }
                         
-                        x_color.a *= (f*0.99 +0.01);                        
+                        float d = 1.0;
+                    if(i_year >= p_yearRange[0] && i_year <= p_yearRange[1]) {
+                            d = 1.0;
+                        } else {
+                            d = 0.0;
+                        }
+                        
+                        x_color.a *= (f * d * 0.99 + 0.01);                        
                         x_position.xyz *= size;
                         x_position.xyz += voffset;
                         
@@ -175,6 +187,7 @@ class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: Facu
         drawer.isolated {
 
             this@PointCloud.shadeStyle.parameter("filterFades", filterModel.states.map { it.fade }.toDoubleArray())
+            this@PointCloud.shadeStyle.parameter("yearRange", dateFilter.range.toIntArray())
 
             drawer.shadeStyle = this@PointCloud.shadeStyle
             this@PointCloud.shadeStyle.parameter("focusFactor", focusFactor)

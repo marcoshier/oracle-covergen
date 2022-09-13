@@ -56,7 +56,7 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
             ::coverlayOpacity.cancel()
             ::zoom.animate(1.0, 800, Easing.CubicInOut).completed.listen {
 
-                coverlay = Coverlay(drawer, proxy, data[index].toList().filter { it != "" }.plus(index.toString())).apply {
+                coverlay = Coverlay(drawer, proxy, data[index].toList().filter { it != "" }.plus(index.toString()), index).apply {
                     subdivide(Section(coverlayFrame))
                 }
 
@@ -154,7 +154,7 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
             val ax = (index % 10) * 60.0 + 40.0
             val ay = (index / 10) * 60.0 + 40.0
 
-            val cover = covers.getOrPut(i) { Cover(index) }
+            val cover = covers.getOrPut(i) { Cover(i) }
             cover.dead = false
 
             cover.apply {

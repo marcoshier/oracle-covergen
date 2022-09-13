@@ -110,7 +110,7 @@ class Section(val rect: Rectangle, val direction: Int = 0): Animatable() {
 
 }
 
-class Coverlay(val drawer: Drawer, val proxy: ColorBufferProxy? = null, val data: List<String>) {
+class Coverlay(val drawer: Drawer, val proxy: ColorBufferProxy? = null, val data: List<String>, val index: Int) {
 
 
     var subdivisionsLeft = data.size - 1
@@ -175,6 +175,9 @@ class Coverlay(val drawer: Drawer, val proxy: ColorBufferProxy? = null, val data
         if(proxy!!.state == ColorBufferProxy.State.LOADED) {
             drawer.opacify(opacity)
             drawer.imageFit(proxy.colorBuffer!!, initialFrame)
+        } else {
+            drawer.fill = ColorRGBa.BLUE
+            drawer.rectangle(initialFrame)
         }
 
         drawer.opacify(1.0)
@@ -185,7 +188,7 @@ class Coverlay(val drawer: Drawer, val proxy: ColorBufferProxy? = null, val data
             box = initialFrame.offsetEdges(-20.0).scaledBy(0.64, 1.0, 0.0, 0.0)
             gaplessNewLine()
             val text = data[0]
-            text(text.take((text.length * opacity).toInt()))
+            text(index.toString() + text.take((text.length * opacity).toInt()))
         }
 
 

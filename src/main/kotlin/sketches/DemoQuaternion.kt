@@ -40,7 +40,7 @@ fun main() {
             val facultyFilterModel = FacultyFilterModel(dataModel)
             var dateFilter = DateFilter(drawer)
             val guides = SphericalGuides(drawer)
-            val pointCloud = PointCloud(drawer, dataModel, facultyFilterModel)
+            val pointCloud = PointCloud(drawer, dataModel, facultyFilterModel, dateFilter)
             val selector = SelectorWidget(drawer)
             val zoomLock = ZoomLockWidget(drawer)
             val miniDetails = MiniDetails(drawer, dataModel)
@@ -74,6 +74,7 @@ fun main() {
             mouse.buttonUp.listen {
                 touchPoints.buttonUp(it)
                 dateFilter.buttonDown(it)
+                dateFilter.buttonUp(it)
                // facultyFilter.buttonUp(it)
             }
 
