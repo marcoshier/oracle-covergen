@@ -40,12 +40,12 @@ class QuaternionCamera : Extension {
             set(value) {
                 if (field != value) {
 
-//                    if (value >= 1.0 && value > field ) {
-//                        if (!locked) {
-//                            locked = true
-//                            zoomLockStarted.trigger(Unit)
-//                        }
-//                    }
+                    if (value >= 1.0 && value > field) {
+                        if (!locked) {
+                            locked = true
+                            zoomLockStarted.trigger(Unit)
+                       }
+                   }
                     field = value
 
                 }
@@ -66,6 +66,7 @@ class QuaternionCamera : Extension {
         }
 
         fun discharge() {
+            println("discharging")
             dragChargeIncrement = 0.0
             dragCharge = min(1.0, dragCharge)
             cancel()
@@ -78,8 +79,8 @@ class QuaternionCamera : Extension {
 
     fun unlockZoom() {
         zoom.locked = false
-        zoomLockFinished.trigger(Unit)
         zoom.discharge()
+        zoomLockFinished.trigger(Unit)
     }
 
     override fun setup(program: Program) {

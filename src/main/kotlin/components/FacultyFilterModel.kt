@@ -9,7 +9,6 @@ class FilterState(val facultyName: String) : Animatable() {
     val stateChanged = Event<Unit>()
     var visible: Boolean = true
     set(value) {
-        println(facultyName)
         if (value != field) {
             field = value
 

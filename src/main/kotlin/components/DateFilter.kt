@@ -38,7 +38,7 @@ class DateFilter(val drawer: Drawer): Animatable(){
             drawer.circle(center, 25.0)
         }
     }
-    val selectors = listOf(Selector(0.3), Selector(0.8))
+    val selectors = listOf(Selector(0.0), Selector(1.0))
     var closestSelector: Selector? = null
 
     var range = listOf(selectors[0].year, selectors[1].year).sorted()
@@ -54,9 +54,9 @@ class DateFilter(val drawer: Drawer): Animatable(){
             val mappedPosition = map(rect.y, rect.y + rect.height, 0.0, 1.0, mouseEvent.position.y)
 
             closestSelector?.pos = if(closestSelector == selectors[0]) {
-                mappedPosition.coerceIn(0.0, selectors[1].pos - 0.1)
+                mappedPosition.coerceIn(0.0, selectors[1].pos - 0.05)
             } else {
-                mappedPosition.coerceIn(selectors[0].pos + 0.1, 1.0)
+                mappedPosition.coerceIn(selectors[0].pos + 0.05, 1.0)
             }
         }
     }
