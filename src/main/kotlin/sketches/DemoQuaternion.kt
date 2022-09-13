@@ -20,7 +20,9 @@ fun main() {
         configure {
             if (!prod) {
                 width = ((1920 / 2) * 3) / 2 + 1080 / 2
+                position = IntVector2(1400, -2100)
                 height = (1920) / 2
+                hideWindowDecorations = true
             } else {
                 width = ((1920 / 2) * 3)  + 1080
                 height = (1920)
@@ -37,7 +39,7 @@ fun main() {
 
             val facultyFilterModel = FacultyFilterModel()
             val guides = SphericalGuides(drawer)
-            val pointCloud = PointCloud(drawer, dataModel.points, facultyFilterModel)
+            val pointCloud = PointCloud(drawer, dataModel, facultyFilterModel)
             val selector = SelectorWidget(drawer)
             val zoomLock = ZoomLockWidget(drawer)
             val miniDetails = MiniDetails(drawer, dataModel)

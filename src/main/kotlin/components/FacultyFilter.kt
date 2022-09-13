@@ -9,12 +9,12 @@ import org.openrndr.draw.isolated
 import org.openrndr.draw.loadFont
 import org.openrndr.extra.shapes.RoundedRectangle
 import org.openrndr.extra.shapes.roundedRectangle
-import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
 
 class FacultyFilter(val drawer: Drawer, val model: FacultyFilterModel) : Animatable() {
 
     var fade = 0.0
+    var facultyList = model.facultyList
 
     fun fadeOut() {
         cancel()
@@ -27,7 +27,7 @@ class FacultyFilter(val drawer: Drawer, val model: FacultyFilterModel) : Animata
     }
 
     fun dragged(mouseEvent: MouseEvent) {
-        for (i in faculties.indices) {
+        for (i in facultyList.indices) {
             if (mouseEvent.position in rectangle(i)) {
                 mouseEvent.cancelPropagation()
             }
@@ -35,7 +35,7 @@ class FacultyFilter(val drawer: Drawer, val model: FacultyFilterModel) : Animata
     }
 
     fun buttonDown(mouseEvent: MouseEvent) {
-        for (i in faculties.indices) {
+        for (i in facultyList.indices) {
             if (mouseEvent.position in rectangle(i)) {
                 mouseEvent.cancelPropagation()
                 model.states[i].visible = !model.states[i].visible
@@ -46,16 +46,7 @@ class FacultyFilter(val drawer: Drawer, val model: FacultyFilterModel) : Animata
     fun buttonUp(mouseEvent: MouseEvent) {
     }
 
-    val faculties = listOf(
-        Pair("Architecture and the Built Environment", ColorRGBa.fromHex("2D5BFF")),
-        Pair("Aerospace Engineering", ColorRGBa.fromHex("A5A5A5")),
-        Pair("Applied Sciences", ColorRGBa.fromHex("C197FB")),
-        Pair("Civil Engineering and Geosciences", ColorRGBa.fromHex("E1A400")),
-        Pair("Electrical Engineering, Mathematics & Computer Science", ColorRGBa.fromHex("19CC78")),
-        Pair("Industrial Design Engineering", ColorRGBa.fromHex("E54949")),
-        Pair("Mechanical Maritime and Materials Engineering", ColorRGBa.fromHex("00A8B4")),
-        Pair("Technology, Policy and Management", ColorRGBa.fromHex("FFAD8F")),
-    )
+
 
     private fun rectangle(index: Int): Rectangle {
         return Rectangle(80.0, drawer.height/2.0 + 120.0 * (index - 4), 100.0, 100.0)
@@ -69,7 +60,7 @@ class FacultyFilter(val drawer: Drawer, val model: FacultyFilterModel) : Animata
 
         drawer.isolated {
             drawer.defaults()
-            faculties.forEachIndexed { index, (name, color) ->
+            facultyList.forEachIndexed { index, (name, color) ->
                 drawer.stroke = color
                 drawer.fill = color.shade(this@FacultyFilter.model.states[index].fade)
 

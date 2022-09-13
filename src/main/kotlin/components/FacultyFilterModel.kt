@@ -2,6 +2,7 @@ package components
 
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.easing.Easing
+import org.openrndr.color.ColorRGBa
 import org.openrndr.events.Event
 
 class FilterState() : Animatable() {
@@ -25,12 +26,34 @@ class FilterState() : Animatable() {
         }
     }
 
-    var fade: Double = 0.0
+    var fade: Double = 1.0
 }
 
 class FacultyFilterModel {
-    val states:List<FilterState> = (0 until 8).map { FilterState() }
 
+    val facultyNames = listOf(
+        "Architecture and The Built Environment",
+        "Aerospace Engineering",
+        "Applied Sciences",
+        "Civil Engineering and Geosciences",
+        "Electrical Engineering, Mathematics and Computer Science",
+        "Industrial Design Engineering",
+        "Mechanical, Maritime and Materials Engineering",
+        "Technology, Policy and Management"
+    )
+    var facultyColors = listOf(
+        ColorRGBa.fromHex("2D5BFF"),
+        ColorRGBa.fromHex("A5A5A5"),
+        ColorRGBa.fromHex("C197FB"),
+        ColorRGBa.fromHex("E1A400"),
+        ColorRGBa.fromHex("19CC78"),
+        ColorRGBa.fromHex("00A8B4"),
+        ColorRGBa.fromHex("E54949"),
+        ColorRGBa.fromHex("FFAD8F")
+    )
+    var facultyList = facultyNames zip facultyColors
+
+    val states:List<FilterState> = facultyNames.map { FilterState() }
 
     init {
         states.forEach {

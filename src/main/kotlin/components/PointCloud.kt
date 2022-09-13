@@ -10,8 +10,10 @@ import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import org.openrndr.math.map
 
-class PointCloud(val drawer: Drawer, positions: List<Vector3>, val filterModel: FacultyFilterModel) : Animatable() {
+class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: FacultyFilterModel) : Animatable() {
 
+    val articleFaculties = dataModel.data.map { it.faculty }
+    val positions = dataModel.points
     val tiles = arrayTexture(4096,4096,2)
 
     init {
@@ -56,6 +58,7 @@ class PointCloud(val drawer: Drawer, positions: List<Vector3>, val filterModel: 
         }
     }
 
+    var counter = 0
     private val offsets = vertexBuffer(
         vertexFormat {
             attribute("offset", VertexElementType.VECTOR3_FLOAT32)
@@ -66,21 +69,21 @@ class PointCloud(val drawer: Drawer, positions: List<Vector3>, val filterModel: 
         positions.size
     ).apply {
         put {
-            for (position in positions) {
+            for ((index, position) in positions.withIndex()) {
                 write(position)
                 val f = position.length.map(10.0, 12.0, 0.0, 1.0)
                 //write(ColorRGBa.PINK.toOKLABa().mix(ColorRGBa.BLUE.toOKLABa(), f).toRGBa())
                 write(ColorRGBa.GRAY)
 
-                val activeFaculty = Int.uniform(0, 7)
+                val faculty = articleFaculties[index]
+                val activeFaculty = filterModel.facultyNames.indexOfFirst {
+                    // not pretty but short and does the job
+                    faculty.contains(it) || faculty.contains(it.lowercase()) || it.contains(faculty) || it.contains(faculty.lowercase()) || faculty.contains("the Built Environment") || faculty.contains("and Materials Engineering")
+                }
 
-                for (i in 0 until 8) {
-
-                    if (i == activeFaculty) {
-                        write(1.0f)
-                    } else {
-                        write(0.0f)
-                    }
+                for (j in 0 until 8) {
+                    val value = if (j == activeFaculty) 1 else 0
+                    write(value.toFloat())
                 }
 
             }

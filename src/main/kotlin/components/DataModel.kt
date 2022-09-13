@@ -35,9 +35,12 @@ class DataModel {
         val llbounds = Rectangle(-180.0, 0.0, 360.0, 180.0)
         val latlon = pointsData.map { it.map(bounds, llbounds) }
 
+        println(pointsData.size)
+
         return latlon.map { Spherical(it.x, it.y, 10.0).cartesian }
     }
     val points = loadPoints()
+
 
 
     private fun loadArticleData(): List<ArticleData> {
@@ -45,7 +48,7 @@ class DataModel {
         val entries = articleData.drop(skipPoints).map {
             ArticleData(it.ogdata["Title"] as String, it.ogdata["Author"] as String, it.ogdata["Faculty"] as String, it.ogdata["Department"] as String, it.ogdata["Date"] as String)
         }
-        println("${entries[0]}")
+        println(entries.size)
         return entries
     }
     val data = loadArticleData()
