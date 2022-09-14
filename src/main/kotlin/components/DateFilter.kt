@@ -20,24 +20,29 @@ class DateFilter(val drawer: Drawer, val model: DateFilterModel): Animatable(){
 
     val font1 = loadFont("data/fonts/RobotoCondensed-Bold.ttf", 38.0)
 
-    inner class Selector(var pos: Double = 0.5, val index: Int) {
-        var year = model.states[index].year
+    inner class Selector(var pos: Double = 0.5) {
+        var year = 0.0
+
+        init {
+            year = map(0.0, 1.0, 2022.0, 1880.0, pos)
+        }
 
         fun draw() {
-            year = model.states[index].year
+
+            year = map(0.0, 1.0, 2022.0, 1880.0, pos)
 
             val center = rail.position(pos)
 
             drawer.stroke = null
             drawer.fill = ColorRGBa.WHITE
-            drawer.text("${year.toInt()}", center.x - 100.0, center.y)
+            drawer.text(year.toInt().toString(), center.x - 100.0, center.y)
             drawer.circle(center, 25.0)
         }
     }
-    val selectors = listOf(Selector(1.0, 0), Selector(0.0, 1))
+    val selectors = listOf(Selector(0.0), Selector(1.0))
     var closestSelector: Selector? = null
 
-    var range = listOf(selectors[0].year, selectors[1].year)
+    var range = listOf(selectors[0].year, selectors[1].year).sorted()
 
     fun dragged(mouseEvent: MouseEvent) {
         if (mouseEvent.position in rect.offsetEdges(80.0)) {
@@ -79,41 +84,36 @@ class DateFilter(val drawer: Drawer, val model: DateFilterModel): Animatable(){
 
     fun draw() {
 
-        val years = model.articleYears
+
 
 
         drawer.isolated {
             drawer.defaults()
 
 
-            range = listOf(selectors[0].year, selectors[1].year)
+            range = listOf(selectors[0].year, selectors[1].year).sorted()
 
             rect = Rectangle(width - 60.0, height / 2.0 - 400.0, 40.0, 800.0)
             rail = LineSegment(rect.center.x, rect.y, rect.center.x, rect.y + rect.height)
 
-            //drawer.roundedRectangle(rect.rounded(20.0))
+            drawer.stroke = null
+            drawer.fill = ColorRGBa.WHITE.opacify(0.35)
+            drawer.roundedRectangle(rect.rounded(20.0))
 
             drawer.fontMap = font1
-            drawer.text("2022", rect.x - 50.0, rect.y - font1.height)
-            drawer.text("1880", rect.x - 50.0, rect.y + rect.height + font1.height)
+            drawer.text("2022", rect.x - 15.0, rect.y - font1.height)
+            drawer.text("1880", rect.x - 15.0, rect.y + rect.height + font1.height)
 
             drawer.stroke = ColorRGBa.WHITE
             drawer.lineSegment(rail)
 
             selectors.forEach { it.draw() }
 
-            drawer.stroke = ColorRGBa.WHITE.opacify(0.2)
+            drawer.stroke = ColorRGBa.WHITE
             drawer.strokeWeight = 40.0
             drawer.lineCap = LineCap.ROUND
             drawer.lineSegment(rail.position(selectors[0].pos), rail.position(selectors[1].pos))
 
-            drawer.stroke = ColorRGBa.WHITE.opacify(1.0)
-            drawer.fill = null
-            drawer.strokeWeight = 1.0
-            for(j in 0 until  142) {
-                val size = years.filter { it == 2022 - j.toFloat() }.size / 85.0
-                drawer.lineSegment(rect.x + 10.0 - size, rect.y + (j / 143.0) * rect.height, rect.x + rect.width + size - 10.0, rect.y + (j / 143.0) * rect.height)
-            }
         }
 
 
