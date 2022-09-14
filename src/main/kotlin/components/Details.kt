@@ -71,10 +71,10 @@ class Details(val drawer: Drawer, val dataModel: DataModel, val extendables: Ext
             }
         }
 
-        fun zoomIn() {
+        fun zoomIn(predelay:Long = 0L){
             ::zoom.cancel()
             ::coverlayOpacity.cancel()
-            ::zoom.animate(1.0, 800, Easing.CubicInOut).completed.listen {
+            ::zoom.animate(1.0, 800, Easing.CubicInOut, predelayInMs = predelay).completed.listen {
 
                 coverlay = Coverlay(drawer, proxy, articleData[index].toList().filter { it != "" }.plus(index.toString()), index).apply {
                     subdivide(Section(coverlayFrame,  0))
@@ -102,38 +102,38 @@ class Details(val drawer: Drawer, val dataModel: DataModel, val extendables: Ext
     }
 
     val covers = mutableMapOf<Int, Cover>()
-    var activeCover: Cover? = null
-        set(value) {
-            if(field != value) {
-                if(field != null && value != null) {
-                    field!!.zoomOut().completed.listen {
-                        field = value
-                        field!!.zoomIn()
-                    }
-                } else if (field == null && value != null){
-                    field = value
-                    field!!.zoomIn()
-                } else if(field != null && value == null) {
-                    field!!.zoomOut()
-                    field = null
-                }
-            }
-        }
+//    var activeCover: Cover? = null
+//        set(value) {
+//            if(field != value) {
+//                if(field != null && value != null) {
+//                    field!!.zoomOut().completed.listen {
+//                        field = value
+//                        field!!.zoomIn()
+//                    }
+//                } else if (field == null && value != null){
+//                    field = value
+//                    field!!.zoomIn()
+//                } else if(field != null && value == null) {
+//                    field!!.zoomOut()
+//                    field = null
+//                }
+//            }
+//        }
 
-    private fun updateMainCover(index: Int? = null) {
-        fade.apply {
-            dummy = 0.0
-            ::dummy.cancel()
-            ::dummy.animate(1.0, 500).completed.listen {
-                if(index != null) {
-                    activeCover = covers[index]
-                } else {
-                    activeCover = null
-                    println("no newcovers $activeCover")
-                }
-            }
-        }
-    }
+//    private fun updateMainCover(index: Int? = null) {
+//        fade.apply {
+//            dummy = 0.0
+//            ::dummy.cancel()
+//            ::dummy.animate(1.0, 500).completed.listen {
+//                if(index != null) {
+//                    activeCover = covers[index]
+//                } else {
+//                    activeCover = null
+//                    println("no newcovers $activeCover")
+//                }
+//            }
+//        }
+//    }
 
     fun updateActive(oldPoints: List<Int>, newPoints: List<Int>) {
 
@@ -153,7 +153,6 @@ class Details(val drawer: Drawer, val dataModel: DataModel, val extendables: Ext
                 c.removing = true
 
                 c.apply {
-                    c.cancel()
                     c::width.cancel()
                     c::height.cancel()
                     c::dummy.cancel()
@@ -225,14 +224,16 @@ class Details(val drawer: Drawer, val dataModel: DataModel, val extendables: Ext
     fun heroPointChanged(event: HeroPointChangedEvent) {
         if (event.newPoint != null) {
             covers[event.newPoint]?.proxy?.priority = 0
+            covers[event.newPoint]?.zoomIn(if (event.oldPoint == null) 0L else 1000L)
         }
-        updateMainCover(event.newPoint)
 
+        if (event.oldPoint != null) {
+            covers[event.oldPoint]?.zoomOut()
+        }
     }
 
     fun draw(seconds: Double) {
         fade.updateAnimation()
-
 
         val clipRectangle = Rectangle(200.0, 400.0, 1080.0-400.0, 1920.0-800.0).offsetEdges(50.0)
         val clipContour = clipRectangle.contour
@@ -241,11 +242,8 @@ class Details(val drawer: Drawer, val dataModel: DataModel, val extendables: Ext
             cover.updateAnimation()
             cover.updateClippedCoordinates(clipRectangle, clipContour)
         }
-        activeCover?.updateAnimation()
-
 
         drawer.isolated {
-
             drawer.defaults()
             drawer.fontMap = loadFont("data/fonts/RobotoCondensed-Regular.ttf", 16.0)
             var line = 0
@@ -256,20 +254,19 @@ class Details(val drawer: Drawer, val dataModel: DataModel, val extendables: Ext
             }
         }
 
-
-
         drawer.isolated {
-
             drawer.defaults()
             drawer.fill = ColorRGBa.TRANSPARENT
+            drawer.depthWrite = false
+            drawer.depthTestPass = DepthTestPass.ALWAYS
 
-            for (cover in covers.values) {
+            for (cover in covers.values.sortedBy { it.zoom }) {
                 val minimizedRect = Rectangle(cover.x - cover.width / 2.0, cover.y, cover.width, cover.height)
                 val dynamicRect =  coverlayFrame * cover.zoom + minimizedRect * (1.0 - cover.zoom)
                 drawer.rectangle(dynamicRect)
 
-                cover.proxy?.touch()
-                val cb = cover.proxy?.colorBuffer
+                cover.proxy.touch()
+                val cb = cover.proxy.colorBuffer
 
                 if(cb != null) {
                     drawer.imageFit(cb, dynamicRect)
@@ -279,7 +276,6 @@ class Details(val drawer: Drawer, val dataModel: DataModel, val extendables: Ext
                     cover.coverlay!!.draw(cover.coverlayOpacity)
                 }
             }
-
 
 
 //            drawer.text("hallo dan?", 40.0, 40.0)
