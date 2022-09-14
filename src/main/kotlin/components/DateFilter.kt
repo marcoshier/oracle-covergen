@@ -30,14 +30,14 @@ class DateFilter(val drawer: Drawer, val model: DateFilterModel): Animatable(){
 
             drawer.stroke = null
             drawer.fill = ColorRGBa.WHITE
-            drawer.text(year.toInt().toString(), center.x - 100.0, center.y)
+            drawer.text("${year.toInt()}", center.x - 100.0, center.y)
             drawer.circle(center, 25.0)
         }
     }
-    val selectors = listOf(Selector(0.0, 0), Selector(1.0, 1))
+    val selectors = listOf(Selector(1.0, 0), Selector(0.0, 1))
     var closestSelector: Selector? = null
 
-    var range = listOf(selectors[0].year, selectors[1].year).sorted()
+    var range = listOf(selectors[0].year, selectors[1].year)
 
     fun dragged(mouseEvent: MouseEvent) {
         if (mouseEvent.position in rect.offsetEdges(80.0)) {
@@ -79,17 +79,14 @@ class DateFilter(val drawer: Drawer, val model: DateFilterModel): Animatable(){
 
     fun draw() {
 
-        val years = model.articleYears.sorted().reversed()
-
-
-
+        val years = model.articleYears
 
 
         drawer.isolated {
             drawer.defaults()
 
 
-            range = listOf(selectors[0].year, selectors[1].year).sorted()
+            range = listOf(selectors[0].year, selectors[1].year)
 
             rect = Rectangle(width - 60.0, height / 2.0 - 400.0, 40.0, 800.0)
             rail = LineSegment(rect.center.x, rect.y, rect.center.x, rect.y + rect.height)
@@ -114,8 +111,8 @@ class DateFilter(val drawer: Drawer, val model: DateFilterModel): Animatable(){
             drawer.fill = null
             drawer.strokeWeight = 1.0
             for(j in 0 until  142) {
-                val size = years.filter { it == j.toFloat() + 1880 }.size / 85.0
-                drawer.lineSegment(rect.x - size, rect.y + (j / 143.0) * rect.height, rect.x + rect.width + size, rect.y + (j / 143.0) * rect.height)
+                val size = years.filter { it == 2022 - j.toFloat() }.size / 85.0
+                drawer.lineSegment(rect.x + 10.0 - size, rect.y + (j / 143.0) * rect.height, rect.x + rect.width + size - 10.0, rect.y + (j / 143.0) * rect.height)
             }
         }
 
