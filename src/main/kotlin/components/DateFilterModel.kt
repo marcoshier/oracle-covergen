@@ -14,10 +14,17 @@ class DateState(year: Double): Animatable() {
     var year = year
         set(value) {
             if (value != field) {
-                field = value
+
 
                 cancel()
-                ::animatedYear.animate(year, 500, Easing.QuadInOut)
+                if (value > field)
+                    animatedYear = value-1.0
+                if (value < field) {
+                    animatedYear = value+1.0
+                }
+                ::animatedYear.animate(value, 500, Easing.QuadInOut)
+
+                field = value
 
                 stateChanged.trigger(Unit)
             }
@@ -50,6 +57,11 @@ class DateFilterModel(val articleYears: List<Float>) {
         val low = min(states[0].year, states[1].year)
         val high = max(states[0].year, states[1].year)
         return articleYears[pointIndex] in (low .. high)
+    }
+
+    fun reset() {
+        states[0].year = 1880.0
+        states[1].year = 2022.0
     }
 
 }

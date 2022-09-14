@@ -161,10 +161,11 @@ class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: Facu
                             }
                         }
                         
-                        float y1 = ceil(p_yearRange[0]) - p_yearRange[0];
-                        float y2 = ceil(p_yearRange[1]) - p_yearRange[1];
+                        float y0 = i_year- p_yearRange[0];
+                        float y1 = p_yearRange[1] - i_year; 
                         
-                        float d = clamp(1.0 - y1 - y2, 0.0, 1.0);
+                        
+                        float d = smoothstep(-1.0, 0.0, y0) * smoothstep(-1.0, 0.0, y1);
                        
                         x_color.a *= (f * d * 0.99 + 0.01);                        
                         x_position.xyz *= size;
@@ -183,7 +184,7 @@ class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: Facu
         drawer.isolated {
 
             this@PointCloud.shadeStyle.parameter("filterFades", filterModel.states.map { it.fade }.toDoubleArray())
-            this@PointCloud.shadeStyle.parameter("yearRange", dateModel.states.map { it.year }.toDoubleArray())
+            this@PointCloud.shadeStyle.parameter("yearRange", dateModel.states.map { it.animatedYear }.sorted().toDoubleArray())
 
             drawer.shadeStyle = this@PointCloud.shadeStyle
             this@PointCloud.shadeStyle.parameter("focusFactor", focusFactor)
@@ -196,6 +197,10 @@ class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: Facu
                 offsets.vertexCount
             )
             drawer.shadeStyle = null
+        }
+        drawer.isolated {
+            drawer.defaults()
+            drawer.text(dateModel.states.map { it.animatedYear }.sorted().toDoubleArray().joinToString(", "), 40.0, 340.0)
         }
     }
 

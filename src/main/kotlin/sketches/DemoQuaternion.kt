@@ -80,11 +80,11 @@ fun main() {
                 facultyFilter.buttonDown(it)
                 zoomLock.buttonDown(it)
                 idleState.exitIdle()
+                dateFilter.buttonDown(it)
             }
 
             mouse.buttonUp.listen {
                 touchPoints.buttonUp(it)
-                dateFilter.buttonDown(it)
                 dateFilter.buttonUp(it)
                // facultyFilter.buttonUp(it)
                 idleState.startTimer()
@@ -143,11 +143,23 @@ fun main() {
             idleState.idleModeStarted.listen {
                 idleSmall.fadeIn()
                 idleBig.fadeIn()
+
+                facultyFilterModel.reset()
+                dateFilterModel.reset()
             }
             idleState.idleModeEnded.listen {
                 idleSmall.fadeOut()
                 idleBig.fadeOut()
             }
+
+            facultyFilterModel.filterChanged.listen {
+                dataModel.filterChanged()
+            }
+
+            dateFilterModel.filterChanged.listen {
+                dataModel.filterChanged()
+            }
+
             //val g = extend(extendables.gui)
             //extend(TimeOperators()) { track(extendables.lfo) }
             //extend(extendables.orb)

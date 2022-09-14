@@ -249,7 +249,8 @@ class Details(val drawer: Drawer, val dataModel: DataModel, val extendables: Ext
             drawer.defaults()
             drawer.fontMap = loadFont("data/fonts/RobotoCondensed-Regular.ttf", 16.0)
             var line = 0
-            for ((k, v) in covers) {
+
+            for (k in dataModel.activePoints) {
                 drawer.text("$k - ${dataModel.data[k].title}", 40.0, line * 20.0 + 40.0)
                 line++
             }

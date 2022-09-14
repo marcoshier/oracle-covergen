@@ -48,35 +48,48 @@ class DateFilter(val drawer: Drawer, val model: DateFilterModel): Animatable(){
         if (mouseEvent.position in rect.offsetEdges(80.0)) {
             mouseEvent.cancelPropagation()
 
-            if(closestSelector == null) {
-                closestSelector = selectors.minBy { rail.position(it.pos).distanceTo(mouseEvent.position)}
-            }
-
+            println("draggin $closestSelector")
             val mappedPosition = map(rect.y, rect.y + rect.height, 0.0, 1.0, mouseEvent.position.y)
 
             closestSelector?.pos = if(closestSelector == selectors[0]) {
-                mappedPosition.coerceIn(0.0, selectors[1].pos - 0.05)
+                mappedPosition.coerceIn(0.0, selectors[1].pos - 0.025)
             } else {
-                mappedPosition.coerceIn(selectors[0].pos + 0.05, 1.0)
+                mappedPosition.coerceIn(selectors[0].pos + 0.025, 1.0)
             }
+            model.states[0].year = selectors.minBy { it.year }.year
+            model.states[1].year = selectors.maxBy { it.year }.year
         }
     }
 
     fun buttonDown(mouseEvent: MouseEvent) {
-        if (mouseEvent.position in rect) {
+        if (mouseEvent.position in rect.offsetEdges(80.0)) {
             mouseEvent.cancelPropagation()
+
             closestSelector = selectors.minBy { rail.position(it.pos).distanceTo(mouseEvent.position)}
+            println("buttondown $closestSelector")
+
             model.states[0].year = selectors.minBy { it.year }.year
             model.states[1].year = selectors.maxBy { it.year }.year
         }
     }
 
     fun buttonUp(mouseEvent: MouseEvent) {
+        if (mouseEvent.position in rect) {
+            mouseEvent.cancelPropagation()
+
+        }
+        closestSelector = null
     }
 
+
     fun draw() {
+
+
+
+
         drawer.isolated {
             drawer.defaults()
+
 
             range = listOf(selectors[0].year, selectors[1].year).sorted()
 

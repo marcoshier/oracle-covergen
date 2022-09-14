@@ -60,4 +60,9 @@ class FacultyFilterModel(dataModel: DataModel) {
         val visible = (0 until 8).filter { states[it].visible }
         return articleFaculties[pointIndex] in visible
     }
+
+    fun reset() {
+        states.forEach { it.visible = true }
+    }
+
 }
