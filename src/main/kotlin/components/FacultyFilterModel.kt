@@ -4,7 +4,7 @@ import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.easing.Easing
 import org.openrndr.events.Event
 
-class FilterState(val facultyName: String) : Animatable() {
+class FilterState : Animatable() {
 
     val stateChanged = Event<Unit>()
     var visible: Boolean = true

@@ -1,42 +1,25 @@
-import kotlinx.coroutines.yield
-import org.openrndr.Program
-import org.openrndr.application
+package components.animatedCover
+
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
-import org.openrndr.extensions.Screenshots
 import org.openrndr.extra.fx.distort.FluidDistort
 import org.openrndr.extra.fx.distort.Lenses
 import org.openrndr.extra.fx.distort.Perturb
-import org.openrndr.extra.gui.GUI
 import org.openrndr.extra.gui.addTo
 import org.openrndr.extra.parameters.DoubleParameter
 import org.openrndr.extra.parameters.IntParameter
-import org.openrndr.extra.timeoperators.TimeOperators
-import org.openrndr.launch
 import org.openrndr.math.Vector2
 import org.openrndr.math.smoothstep
 import org.openrndr.poissonfill.PoissonFill
 import org.openrndr.shape.Rectangle
+import sketches.Extendables
 import java.io.File
 
-fun main() = application {
-    configure {
-        width = 1080 / 2
-        height = 1920 / 2
-        //position = IntVector2(2550, -2180)
-        hideWindowDecorations = true
-        windowAlwaysOnTop = false
-    }
-    program {
+class AnimatedCover(val frame: Rectangle, params: Extendables, val drawer: Drawer) {
 
-        var showTitle = false
-        var showColorRamp = false
-        var coverSaver = false
+        val gui = params.gui
 
-        val gui = GUI(baseColor = ColorRGBa.fromHex("#7a1414").shade(0.3))
-
-        val fxSliders = object {
-
+        inner class FXSliders {
             @DoubleParameter("FX Amount", 0.0, 1.0)
             var fxAmount = 0.0
 
@@ -79,19 +62,19 @@ fun main() = application {
 
             @DoubleParameter("Fluid Distort", 0.9, 1.0, precision = 3)
             var fd = 0.0
+        }
+        private val fxSliders = FXSliders().apply { addTo(gui, "FX") }
 
-        }.addTo(gui, "FX")
-        val colorSliders = object {
+        inner class ColorSliders {
             @IntParameter("Main Hue", 0, 7)
             var centerHue = 0
 
             @DoubleParameter("Contrast Reversal", 0.0, 1.0)
             var contrastReversal = 0.0
+        }
+        private val colorSliders = ColorSliders().apply { addTo(gui, "Color Settings") }
 
-        }.addTo(gui, "Color Settings")
-
-        fun generatePalette(): List<List<ColorRGBa>> {
-
+        private fun generatePalette(): List<List<ColorRGBa>> {
             val colors = listOf(
                 "#F2602B",
                 "#C197FB",
@@ -122,61 +105,38 @@ fun main() = application {
             return listOf(lightContrasted, baseColors, darkContrasted)
 
         }
+        var palette = generatePalette()
 
-        val ecosystem = Ecosystem(gui, drawer.bounds)
-        val fxs = object  {
+        val ecosystem = Ecosystem(gui, frame, params.lfo, params.orb)
+
+        inner class Effects {
             val perturb = Perturb()
             val poisson = PoissonFill()
             val fluidDistort = FluidDistort()
             val lenses = Lenses()
         }
-        val cbs = object  {
-            val perturbed = colorBuffer(width, height)
-            val poissoned = colorBuffer(width, height)
-            val tiled = colorBuffer(width, height)
+        val fxs = Effects()
+
+        inner class ColorBuffers {
+            val perturbed = colorBuffer(frame.width.toInt(), frame.height.toInt())
+            val poissoned = colorBuffer(frame.width.toInt(), frame.height.toInt())
+            val tiled = colorBuffer(frame.width.toInt(), frame.height.toInt())
+        }
+        val cbs = ColorBuffers()
+
+
+        fun stateChanged(json: File) {
+            palette = generatePalette()
+            gui.loadParameters(json)
         }
 
-        //extend(ScreenRecorder())
-        extend(TimeOperators()) {
-            track(ecosystem.lfo)
-        }
-        extend(ecosystem.orb)
-        val g = extend(gui)
 
-
-        val s = extend(Screenshots())
-        if(coverSaver) {
-            showTitle = false
-            showColorRamp = false
-            val jsons = File("offline-data/resolved/json").walk().filter { it.isFile && it.extension == "json" }.drop(200530)
-
-            launch {
-                for (json in jsons) {
-                    g.loadParameters(json)
-                    s.apply {
-                        name = "data/generated/${json.nameWithoutExtension}.png"
-                        trigger()
-                    }
-
-                    for (z in 0 until 10) {
-                        yield()
-                    }
-                }
-
-                println("Finished")
-            }
-        }
-
-        extend {
-
-
-            g.visible = mouse.position.x < 200.0
-
-            val palette = generatePalette()
+        fun draw(seconds: Double) {
             drawer.clear(palette[2][0])
 
             val maxSpeed = 0.8
             ecosystem.draw(drawer, seconds * maxSpeed, palette)
+
 
             // effects
             var active = cbs.perturbed
@@ -215,67 +175,9 @@ fun main() = application {
             drawer.image(active)
 
 
-            if(showColorRamp) {
-                showColorRamp(palette)
-            }
-            if(showTitle) {
-                showTitle(palette)
-            }
+            drawer.defaults()
         }
-    }
+
 }
 
-fun Program.showTitle(palette: List<List<ColorRGBa>>) {
-    val sampleTitle = "A tool for collaborative circular proposition design"
 
-    drawer.isolated {
-        drawer.defaults()
-
-        drawer.fill = null
-        drawer.stroke = palette[0][0]
-        drawer.strokeWeight = 2.0
-
-        val titleRect = Rectangle(Vector2.ZERO, width * 1.0, height / 2.0)
-
-        drawer.rectangle(titleRect)
-        drawer.rectangle(drawer.bounds.center, width / 2.0, height / 2.0)
-        drawer.rectangle(0.0, height / 4.0 * 3, width / 2.0, height / 4.0)
-
-        drawer.fill = palette[0][0]
-        drawer.fontMap = loadFont("data/fonts/default.otf", 65.0)
-        writer {
-            box = titleRect.offsetEdges(-20.0)
-            newLine()
-            text(sampleTitle)
-        }
-    }
-}
-
-fun Program.showColorRamp(palette: List<List<ColorRGBa>>) {
-
-    drawer.translate(width - (60.0 * palette[0].size), height - 200.0)
-    drawer.isolated {
-        for ((index, i) in palette[0].withIndex()) {
-            drawer.stroke = null
-            drawer.fill = i.toRGBa()
-            drawer.rectangle(20.0, 20.0, 50.0, 50.0)
-            drawer.translate(50.0, 0.0)
-        }
-    }
-    drawer.isolated {
-        for ((index, i) in palette[1].withIndex()) {
-            drawer.stroke = null
-            drawer.fill = i.toRGBa()
-            drawer.rectangle(20.0, 70.0, 50.0, 50.0)
-            drawer.translate(50.0, 0.0)
-        }
-    }
-    drawer.isolated {
-        for ((index, i) in palette[2].withIndex()) {
-            drawer.stroke = null
-            drawer.fill = i.toRGBa()
-            drawer.rectangle(20.0, 120.0, 50.0, 50.0)
-            drawer.translate(50.0, 0.0)
-        }
-    }
-}

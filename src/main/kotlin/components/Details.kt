@@ -1,5 +1,7 @@
 package components
 
+import animatedCover.Coverlay
+import animatedCover.Section
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.PropertyAnimationKey
 import org.openrndr.animatable.easing.Easing
@@ -9,6 +11,7 @@ import org.openrndr.extra.imageFit.imageFit
 import org.openrndr.internal.colorBufferLoader
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
+import sketches.Extendables
 import org.openrndr.shape.ShapeContour
 import org.openrndr.shape.bounds
 import org.openrndr.shape.map
@@ -17,7 +20,11 @@ import textSandbox.Section
 import kotlin.math.abs
 
 
-class Details(val drawer: Drawer, val articleData: List<ArticleData>, val dataModel: DataModel) {
+
+class Details(val drawer: Drawer, dataModel: DataModel, val extendables: Extendables) {
+
+    val data = dataModel.data
+    val jsons = dataModel.animatedCoverParams
 
     class Fade : Animatable() {
         var opacity = 0.0
@@ -103,21 +110,16 @@ class Details(val drawer: Drawer, val articleData: List<ArticleData>, val dataMo
         set(value) {
             if(field != value) {
                 if(field != null && value != null) {
-                    println("something $field to start with and something to end with $value")
                     field!!.zoomOut().completed.listen {
                         field = value
                         field!!.zoomIn()
                     }
                 } else if (field == null && value != null){
-                    println("nothing $field to start with and something to end with  $value")
                     field = value
                     field!!.zoomIn()
                 } else if(field != null && value == null) {
-                    println("something to start with and nothing to end with")
                     field!!.zoomOut()
                     field = null
-                } else {
-                    println("nothing to start and nothing to end with")
                 }
             }
         }
@@ -129,7 +131,6 @@ class Details(val drawer: Drawer, val articleData: List<ArticleData>, val dataMo
             ::dummy.animate(1.0, 500).completed.listen {
                 if(index != null) {
                     activeCover = covers[index]
-                    println("newcover exists $activeCover")
                 } else {
                     activeCover = null
                     println("no newcovers $activeCover")
@@ -233,9 +234,7 @@ class Details(val drawer: Drawer, val articleData: List<ArticleData>, val dataMo
 
     }
 
-
-
-    fun draw() {
+    fun draw(seconds: Double) {
         fade.updateAnimation()
 
 
@@ -280,7 +279,7 @@ class Details(val drawer: Drawer, val articleData: List<ArticleData>, val dataMo
                 }
 
                 if(cover.coverlay != null) {
-                    cover.coverlay!!.draw(cover.coverlayOpacity)
+                    cover.coverlay!!.draw(cover.coverlayOpacity, seconds)
                 }
             }
 

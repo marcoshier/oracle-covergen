@@ -3,8 +3,10 @@ package sketches
 import components.*
 import extensions.QuaternionCamera
 import org.openrndr.application
-import org.openrndr.extensions.Screenshots
-import org.openrndr.ffmpeg.ScreenRecorder
+import org.openrndr.extra.camera.Orbital
+import org.openrndr.extra.gui.GUI
+import org.openrndr.extra.timeoperators.LFO
+import org.openrndr.extra.timeoperators.TimeOperators
 import org.openrndr.math.*
 
 fun main() {
@@ -29,13 +31,14 @@ fun main() {
         program {
             val dataModel = DataModel()
 
-            extend(Screenshots())
+            val extendables = Extendables()
 
             val facultyFilterModel = FacultyFilterModel(dataModel)
             val dateFilterModel = DateFilterModel(dataModel.years)
             val facultyFilter = FacultyFilter(drawer, facultyFilterModel)
 
             // signs that we need to split things up
+            val idleState = IdleState(5.0)
             dataModel.dateFilter = dateFilterModel
             dataModel.facultyFilter = facultyFilterModel
 
@@ -46,6 +49,8 @@ fun main() {
             val zoomLock = ZoomLockWidget(drawer)
             val miniDetails = MiniDetails(drawer, dataModel)
             val touchPoints = TouchPoints(drawer)
+            val idleSmall = IdleSmall(drawer)
+            val idleBig = IdleBig(drawer)
             val smallScreenView = ViewBox(drawer, Vector2(0.0, 0.0), 2880, 1920) {
                 guides.draw()
                 pointCloud.draw()
@@ -55,11 +60,16 @@ fun main() {
                 touchPoints.draw()
                 facultyFilter.draw()
                 dateFilter.draw()
+                idleSmall.draw()
             }
 
-            val details = Details(drawer, dataModel.data, dataModel)
 
-            val bigScreenView = ViewBox(drawer, Vector2(2880.0, 0.0), 1080, 1920) { details.draw() }
+            val details = Details(drawer, dataModel, extendables)
+
+            val bigScreenView = ViewBox(drawer, Vector2(2880.0, 0.0), 1080, 1920) {
+                details.draw(seconds)
+                idleBig.draw()
+            }
 
             val minimap = Minimap(drawer)
             val minimapView = ViewBox(drawer, Vector2(0.0, height - 128.0), 128, 128) { minimap.draw() }
@@ -69,6 +79,7 @@ fun main() {
                 touchPoints.buttonDown(it)
                 facultyFilter.buttonDown(it)
                 zoomLock.buttonDown(it)
+                idleState.exitIdle()
             }
 
             mouse.buttonUp.listen {
@@ -76,25 +87,27 @@ fun main() {
                 dateFilter.buttonDown(it)
                 dateFilter.buttonUp(it)
                // facultyFilter.buttonUp(it)
+                idleState.startTimer()
             }
 
             mouse.dragged.listen {
                 touchPoints.dragged(it)
                 facultyFilter.dragged(it)
                 dateFilter.dragged(it)
+                //idleMode.exitIdle()
             }
 
-            val camera = extend(QuaternionCamera())
+            val qCamera = extend(QuaternionCamera())
 
-            camera.orientationChanged.listen {
+            qCamera.orientationChanged.listen {
                 dataModel.lookAt = (it.matrix.matrix44.inversed * Vector4(0.0, 0.0, -10.0, 1.0)).xyz
                 minimap.orientation = it
             }
-            camera.zoomLockStarted.listen {
+            qCamera.zoomLockStarted.listen {
                 zoomLock.fadeIn()
             }
 
-            camera.zoomOutStarted.listen {
+            qCamera.zoomOutStarted.listen {
                 selector.fadeOut()
                 miniDetails.fadeOut()
                 pointCloud.fadeOut()
@@ -103,7 +116,8 @@ fun main() {
                 dataModel.muteActivePoints()
                 details.fadeOut()
             }
-            camera.zoomInFinished.listen {
+
+            qCamera.zoomInFinished.listen {
                 dataModel.unmuteActivePoints()
                 details.fadeIn()
                 selector.fadeIn()
@@ -111,8 +125,9 @@ fun main() {
                 pointCloud.fadeIn()
                 //facultyFilter.fadeIn()
                 // this is a bit of a hack to make sure active points are updated, it doesn't work though?
-                camera.orientationChanged.trigger(camera.orientation)
+                qCamera.orientationChanged.trigger(qCamera.orientation)
             }
+
             dataModel.activePointsChanged.listen {
                 details.updateActive(it.oldPoints, it.newPoints)
                 miniDetails.updateActive(it.oldPoints, it.newPoints)
@@ -122,10 +137,25 @@ fun main() {
             }
 
             zoomLock.zoomUnlockRequested.listen {
-                camera.unlockZoom()
+                qCamera.unlockZoom()
             }
 
+            idleState.idleModeStarted.listen {
+                idleSmall.fadeIn()
+                idleBig.fadeIn()
+            }
+            idleState.idleModeEnded.listen {
+                idleSmall.fadeOut()
+                idleBig.fadeOut()
+            }
+            //val g = extend(extendables.gui)
+            //extend(TimeOperators()) { track(extendables.lfo) }
+            //extend(extendables.orb)
+
             extend {
+                //g.visible = false
+
+                idleState.update()
                 facultyFilterModel.update()
                 dateFilterModel.update()
 
@@ -135,4 +165,17 @@ fun main() {
             }
         }
     }
+}
+
+
+class Extendables {
+    var lfo = LFO()
+    var orb = Orbital().apply {
+        eye = Vector3(0.0, 0.0, 0.01)
+        dampingFactor = 0.0
+        near = 0.5
+        far = 5000.0
+        userInteraction = false
+    }
+    var gui = GUI()
 }
