@@ -8,6 +8,7 @@ import org.openrndr.draw.LineCap
 import org.openrndr.draw.isolated
 import org.openrndr.draw.loadFont
 import org.openrndr.extra.shapes.roundedRectangle
+import org.openrndr.math.Vector2
 import org.openrndr.math.map
 import org.openrndr.shape.LineSegment
 import org.openrndr.shape.Rectangle
@@ -20,26 +21,28 @@ class DateFilter(val drawer: Drawer, val model: DateFilterModel): Animatable(){
 
     val font1 = loadFont("data/fonts/RobotoCondensed-Bold.ttf", 38.0)
 
-    inner class Selector(var pos: Double = 0.5, val index: Int) {
-        var year = 0.0
+    inner class Selector(var state: DateState) {
+
+        var pos: Double
+            get() {
+                return state.year.map(2020.0, 1880.0,0.0, 1.0)
+            }
+            set(value) {
+                state.year = value.map(0.0, 1.0, 2020.0, 1880.0)
+            }
 
 
         fun draw() {
-
-            year = model.states[index].year
-
             val center = rail.position(pos)
-
             drawer.stroke = null
             drawer.fill = ColorRGBa.WHITE
-            drawer.text("${year.toInt()}", center.x - 120.0, center.y)
+            drawer.text("${state.year.toInt()}", center.x - 120.0, center.y)
             drawer.circle(center, 25.0)
         }
     }
-    val selectors = listOf(Selector(0.0, 1), Selector(1.0, 0))
-    var closestSelector: Selector? = null
 
-    var range = listOf(selectors[0].year, selectors[1].year).sorted()
+    val selectors = model.states.map { Selector(it) }
+    var closestSelector: Selector? = null
 
     fun dragged(mouseEvent: MouseEvent) {
         if (mouseEvent.position in rect.offsetEdges(80.0)) {
@@ -49,12 +52,10 @@ class DateFilter(val drawer: Drawer, val model: DateFilterModel): Animatable(){
             val mappedPosition = map(rect.y, rect.y + rect.height, 0.0, 1.0, mouseEvent.position.y)
 
             closestSelector?.pos = if(closestSelector == selectors[0]) {
-                mappedPosition.coerceIn(selectors[1].pos + 0.025, 1.0)
+                mappedPosition.coerceIn(selectors[0].pos + 0.025, 1.0)
             } else {
                 mappedPosition.coerceIn(0.0, selectors[1].pos - 0.025)
             }
-            model.states[0].year = selectors.minBy { it.year }.year
-            model.states[1].year = selectors.maxBy { it.year }.year
         }
     }
 
@@ -64,9 +65,6 @@ class DateFilter(val drawer: Drawer, val model: DateFilterModel): Animatable(){
 
             closestSelector = selectors.minBy { rail.position(it.pos).distanceTo(mouseEvent.position)}
             println("buttondown $closestSelector")
-
-            model.states[0].year = selectors.minBy { it.year }.year
-            model.states[1].year = selectors.maxBy { it.year }.year
         }
     }
 
@@ -86,9 +84,6 @@ class DateFilter(val drawer: Drawer, val model: DateFilterModel): Animatable(){
 
         drawer.isolated {
             drawer.defaults()
-
-
-            range = listOf(selectors[0].year, selectors[1].year).sorted()
 
             rect = Rectangle(width - 60.0, height / 2.0 - 400.0, 40.0, 800.0)
             rail = LineSegment(rect.center.x, rect.y, rect.center.x, rect.y + rect.height)
