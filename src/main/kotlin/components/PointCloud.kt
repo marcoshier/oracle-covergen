@@ -66,6 +66,7 @@ class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: Facu
             attribute("color", VertexElementType.VECTOR4_FLOAT32)
             attribute("fac0", VertexElementType.VECTOR4_FLOAT32)
             attribute("fac1", VertexElementType.VECTOR4_FLOAT32)
+            attribute("fac2", VertexElementType.VECTOR4_FLOAT32)
             attribute("year", VertexElementType.FLOAT32)
         },
         positions.size
@@ -77,13 +78,16 @@ class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: Facu
                 //write(ColorRGBa.PINK.toOKLABa().mix(ColorRGBa.BLUE.toOKLABa(), f).toRGBa())
                 //write(ColorRGBa.GRAY)
 
-                val activeFaculty = facultyIndexes[index]
+                val activeFaculty = facultyIndexes[index].let { if (it == -1) 9 else it }
                 write(dataModel.facultyColors.getOrNull(activeFaculty)?:ColorRGBa.WHITE)
 
-                for (j in 0 until 8) {
+                for (j in 0 until 9) {
                     val value = if (j == activeFaculty) 1 else 0
                     write(value.toFloat())
                 }
+                write(0.0f)
+                write(0.0f)
+                write(0.0f)
 
 
                 val activeYear = years[index]
@@ -166,6 +170,12 @@ class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: Facu
                             }
                         }
                         
+                        for (int i = 0; i < 1; ++i) {
+                            if (i_fac2[i] > 0.5) {
+                                f += p_filterFades[i+8];                                                                                
+                            }
+                        }
+                        
                         float y0 = i_year- p_yearRange[0];
                         float y1 = p_yearRange[1] - i_year; 
                         
@@ -188,7 +198,10 @@ class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: Facu
         updateAnimation()
         drawer.isolated {
 
-            this@PointCloud.shadeStyle.parameter("filterFades", filterModel.states.map { it.fade }.toDoubleArray())
+            val filterFades = filterModel.states.map { it.fade }.toDoubleArray()
+            require(filterFades.size == 9)
+
+            this@PointCloud.shadeStyle.parameter("filterFades", filterFades)
             this@PointCloud.shadeStyle.parameter("yearRange", dateModel.range().toDoubleArray())
 
             drawer.shadeStyle = this@PointCloud.shadeStyle
@@ -203,10 +216,7 @@ class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: Facu
             )
             drawer.shadeStyle = null
         }
-        drawer.isolated {
-            drawer.defaults()
-            drawer.text(dateModel.states.map { it.animatedYear }.sorted().toDoubleArray().joinToString(", "), 40.0, 340.0)
-        }
+
     }
 
 }

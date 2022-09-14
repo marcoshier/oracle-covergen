@@ -118,19 +118,12 @@ class DateFilter(val drawer: Drawer, val model: DateFilterModel): Animatable(){
                 val size = (years.filter { it == (2022 - j).toFloat() }.size / 85.0) + 5.0
                 val animSize = mix(size, rect.width / 2.0, 1.0 - fade)
                 val y = rect.y + (j / 143.0) * rect.height
-
-                println("${rail.position(selectors[0].pos).y}    $y")
-
                 val isInside = if(y >= rail.position(selectors[1].pos).y && y <= rail.position(selectors[0].pos).y) 1.0 else 0.0
 
                 val animOpacity = mix(0.1, 1.0, fade)
                 drawer.stroke = ColorRGBa.WHITE.opacify(animOpacity * isInside)
-
                 drawer.lineSegment(rect.center.x - animSize, y, rect.center.x + animSize,y)
             }
-
         }
-
-
     }
 }

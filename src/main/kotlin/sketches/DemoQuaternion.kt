@@ -6,7 +6,6 @@ import org.openrndr.application
 import org.openrndr.extra.camera.Orbital
 import org.openrndr.extra.gui.GUI
 import org.openrndr.extra.timeoperators.LFO
-import org.openrndr.extra.timeoperators.TimeOperators
 import org.openrndr.math.*
 
 fun main() {
@@ -38,7 +37,7 @@ fun main() {
             val facultyFilter = FacultyFilter(drawer, facultyFilterModel)
 
             // signs that we need to split things up
-            val idleState = IdleState(5.0)
+            val idleState = IdleState(60.0)
             dataModel.dateFilter = dateFilterModel
             dataModel.facultyFilter = facultyFilterModel
 
@@ -99,7 +98,7 @@ fun main() {
             }
 
             val qCamera = extend(QuaternionCamera())
-            val idleController = IdleController(qCamera)
+            val idleController = IdleController(qCamera, dataModel)
 
             qCamera.orientationChanged.listen {
                 dataModel.lookAt = (it.matrix.matrix44.inversed * Vector4(0.0, 0.0, -10.0, 1.0)).xyz

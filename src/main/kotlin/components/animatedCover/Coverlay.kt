@@ -225,7 +225,7 @@ class Coverlay(val drawer: Drawer, val proxy: ColorBufferProxy, val data: List<S
             box = initialFrame.offsetEdges(-20.0).scaledBy(0.64, 1.0, 0.0, 0.0)
             gaplessNewLine()
             val text = data[0]
-            text(index.toString() + text.take((text.length * opacity).toInt()))
+            text(text.take((text.length * opacity).toInt()))
         }
 
 
