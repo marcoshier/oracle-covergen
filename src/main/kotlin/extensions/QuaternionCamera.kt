@@ -107,12 +107,13 @@ class QuaternionCamera : Extension {
                 ) * orientation
                 orientationChanged.trigger(orientation)
 
-                val distance = (it.position - dragStart).length
-                if (distance > minTravel) {
-                    zoom.dragChargeIncrement = (distance - minTravel) / 100000.0
-                }
 
-                zoom.cancel()
+                    val distance = (it.position - dragStart).length
+                    if (distance > minTravel) {
+                        zoom.dragChargeIncrement = (distance - minTravel) / 100000.0
+                    }
+                    zoom.cancel()
+
             }
         }
 

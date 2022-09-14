@@ -102,42 +102,8 @@ class Details(val drawer: Drawer, val dataModel: DataModel, val extendables: Ext
     }
 
     val covers = mutableMapOf<Int, Cover>()
-//    var activeCover: Cover? = null
-//        set(value) {
-//            if(field != value) {
-//                if(field != null && value != null) {
-//                    field!!.zoomOut().completed.listen {
-//                        field = value
-//                        field!!.zoomIn()
-//                    }
-//                } else if (field == null && value != null){
-//                    field = value
-//                    field!!.zoomIn()
-//                } else if(field != null && value == null) {
-//                    field!!.zoomOut()
-//                    field = null
-//                }
-//            }
-//        }
-
-//    private fun updateMainCover(index: Int? = null) {
-//        fade.apply {
-//            dummy = 0.0
-//            ::dummy.cancel()
-//            ::dummy.animate(1.0, 500).completed.listen {
-//                if(index != null) {
-//                    activeCover = covers[index]
-//                } else {
-//                    activeCover = null
-//                    println("no newcovers $activeCover")
-//                }
-//            }
-//        }
-//    }
 
     fun updateActive(oldPoints: List<Int>, newPoints: List<Int>) {
-
-        //println("oldPoints: ${oldPoints.size}, newPoints: ${newPoints.size}")
 
         val removed = oldPoints subtract newPoints
         val added = newPoints subtract oldPoints
@@ -145,10 +111,8 @@ class Details(val drawer: Drawer, val dataModel: DataModel, val extendables: Ext
         val latentBounds = newPoints.map { dataModel.latentPoints[it] }.bounds
         val drawBounds =Rectangle(0.0, 0.0, 1080.0, 1920.0)
 
-
         for (i in removed) {
             covers[i]?.let { c ->
-
                 c.dead = false
                 c.removing = true
 
@@ -161,7 +125,7 @@ class Details(val drawer: Drawer, val dataModel: DataModel, val extendables: Ext
                     c::dummy.animate(1.0, 1500).completed.listen {
                         c.removing = false
                         c.dead = true
-                        c.proxy?.cancel()
+                        c.proxy.cancel()
                         covers.remove(i)
                     }
                 }
@@ -179,18 +143,11 @@ class Details(val drawer: Drawer, val dataModel: DataModel, val extendables: Ext
             cover.apply {
                 cover::x.cancel()
                 cover::y.cancel()
-//                val d = if (i in added) 1.0 else 1.0
-//                val dx = (abs(ax - cover.x) * d).toLong()
-//                val dy = (abs(ay - cover.y) * d).toLong()
                 val dx = 500L
                 val dy = 500L
                 cover::x.animate(position.x, dx, Easing.QuadInOut)
-                //cover::x.complete()
                 cover::y.animate(position.y, dy, Easing.QuadInOut)
-                //cover::y.complete()
             }
-
-
         }
 
         for (i in added) {
@@ -276,12 +233,6 @@ class Details(val drawer: Drawer, val dataModel: DataModel, val extendables: Ext
                     cover.coverlay!!.draw(cover.coverlayOpacity)
                 }
             }
-
-
-//            drawer.text("hallo dan?", 40.0, 40.0)
-//            for ((index, i) in this@Details.model.activePoints.withIndex()) {
-//                drawer.text("$i", 40.0, 40.0 + index * 20.0)
-//            }
         }
     }
 }

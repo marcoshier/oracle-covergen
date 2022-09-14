@@ -28,8 +28,8 @@ class ZoomLockWidget(val drawer: Drawer) : Animatable() {
 
     fun buttonDown(event: MouseEvent) {
         if (fade > 0.0) {
-            fadeOut()
             if (event.position.distanceTo(Vector2(2880/2.0, 1920.0/2.0)) < 100.0) {
+                fadeOut()
                 zoomUnlockRequested.trigger(Unit)
             } else {
                 println(event.position)
