@@ -23,7 +23,7 @@ class DateFilter(val drawer: Drawer, val model: DateFilterModel): Animatable(){
     var rect = Rectangle(((1920 / 2) * 3) - 60.0, drawer.height / 2.0 - 400.0, 40.0, 800.0)
     var rail = LineSegment(rect.center.x, rect.y, rect.center.x, rect.y + rect.height)
 
-    val font1 = loadFont("data/fonts/RobotoCondensed-Bold.ttf", 38.0)
+    val font1 = loadFont("data/fonts/RobotoCondensed-Regular.ttf", 38.0)
 
     inner class Selector(var state: DateState) {
 
@@ -40,7 +40,7 @@ class DateFilter(val drawer: Drawer, val model: DateFilterModel): Animatable(){
             val center = rail.position(pos)
             drawer.stroke = null
             drawer.fill = ColorRGBa.WHITE
-            drawer.text("${state.year.toInt()}", center.x - 120.0, center.y)
+            drawer.text("${state.year.toInt()}", center.x - 110.0, center.y + 12.0)
             drawer.circle(center, 25.0)
         }
     }
@@ -67,7 +67,6 @@ class DateFilter(val drawer: Drawer, val model: DateFilterModel): Animatable(){
 
             cancel()
             ::fade.animate(1.0, 400, Easing.QuadInOut)
-            println("buttondown $closestSelector")
         }
     }
 
@@ -75,7 +74,6 @@ class DateFilter(val drawer: Drawer, val model: DateFilterModel): Animatable(){
         if (mouseEvent.position in rect) {
             mouseEvent.cancelPropagation()
 
-            cancel()
             ::fade.animate(0.0, 400, Easing.QuadInOut, 3000)
         }
         closestSelector = null
@@ -83,7 +81,7 @@ class DateFilter(val drawer: Drawer, val model: DateFilterModel): Animatable(){
 
 
     fun draw() {
-
+        updateAnimation()
         val years = model.articleYears
 
 
@@ -98,8 +96,8 @@ class DateFilter(val drawer: Drawer, val model: DateFilterModel): Animatable(){
             //drawer.roundedRectangle(rect.rounded(20.0))
 
             drawer.fontMap = font1
-            drawer.text("2022", rect.x - 15.0, rect.y - font1.height)
-            drawer.text("1880", rect.x - 15.0, rect.y + rect.height + font1.height)
+            drawer.text("2022", rect.x - 15.0, rect.y - 50.0)
+            drawer.text("1880", rect.x - 15.0, rect.y + rect.height + 60.0)
 
             drawer.stroke = ColorRGBa.WHITE
             drawer.lineSegment(rail)
@@ -112,15 +110,23 @@ class DateFilter(val drawer: Drawer, val model: DateFilterModel): Animatable(){
             drawer.lineSegment(rail.position(selectors[0].pos), rail.position(selectors[1].pos))
 
             drawer.fill = null
-            drawer.stroke = ColorRGBa.WHITE.opacify(mix(0.1, 1.0, fade))
             drawer.strokeWeight = mix(11.0, 1.0, fade)
             drawer.lineCap = LineCap.BUTT
 
 
             for(j in 0 until 143) {
-                val size = (years.filter { it == (2022 - j).toFloat() }.size / 85.0)
+                val size = (years.filter { it == (2022 - j).toFloat() }.size / 85.0) + 5.0
                 val animSize = mix(size, rect.width / 2.0, 1.0 - fade)
-                drawer.lineSegment(rect.center.x - animSize, rect.y + (j / 143.0) * rect.height, rect.center.x + animSize,rect.y + (j / 143.0) * rect.height)
+                val y = rect.y + (j / 143.0) * rect.height
+
+                println("${rail.position(selectors[0].pos).y}    $y")
+
+                val isInside = if(y >= rail.position(selectors[1].pos).y && y <= rail.position(selectors[0].pos).y) 1.0 else 0.0
+
+                val animOpacity = mix(0.1, 1.0, fade)
+                drawer.stroke = ColorRGBa.WHITE.opacify(animOpacity * isInside)
+
+                drawer.lineSegment(rect.center.x - animSize, y, rect.center.x + animSize,y)
             }
 
         }

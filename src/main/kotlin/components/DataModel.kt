@@ -83,17 +83,19 @@ class DataModel() {
         "Electrical Engineering, Mathematics & Computer Science (EEMCS)",
         "Industrial Design Engineering (IDE)",
         "Mechanical, Maritime and Materials Engineering (3mE)",
-        "Technology, Policy and Management (TPM)"
+        "Technology, Policy and Management (TPM)",
+        "Unknown Faculty (?)"
     )
     var facultyColors = listOf(
         ColorRGBa.fromHex("2D5BFF"),
-        ColorRGBa.fromHex("A5A5A5"),
+        ColorRGBa.fromHex("FF9254"),
         ColorRGBa.fromHex("C197FB"),
         ColorRGBa.fromHex("E1A400"),
         ColorRGBa.fromHex("19CC78"),
         ColorRGBa.fromHex("00A8B4"),
         ColorRGBa.fromHex("E54949"),
-        ColorRGBa.fromHex("FFAD8F")
+        ColorRGBa.fromHex("FFAD8F"),
+        ColorRGBa.fromHex("A5A5A5")
     )
     var facultyToColor = facultyNames zip facultyColors
 

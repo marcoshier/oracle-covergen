@@ -57,7 +57,7 @@ class FacultyFilterModel(dataModel: DataModel) {
     }
 
     fun filter(pointIndex: Int) : Boolean {
-        val visible = (0 until 8).filter { states[it].visible }
+        val visible = (0 until 9).filter { states[it].visible }
         return articleFaculties[pointIndex] in visible
     }
 
