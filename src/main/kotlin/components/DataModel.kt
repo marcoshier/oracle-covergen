@@ -117,7 +117,7 @@ class DataModel {
             year.toFloat()
         }}
 
-
+    val animatedCoverParams = File("data/xyNew/").walk().filter { it.isFile && it.extension == "json" }.toList()
 
     /**
      * The kd-tree for the points

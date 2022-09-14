@@ -1,17 +1,11 @@
 package sketches
 
-import com.github.doyaaaaaken.kotlincsv.client.CsvReader
-import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import components.*
 import extensions.QuaternionCamera
 import org.openrndr.application
 import org.openrndr.extensions.Screenshots
-import org.openrndr.ffmpeg.ScreenRecorder
+import org.openrndr.extra.timeoperators.TimeOperators
 import org.openrndr.math.*
-import org.openrndr.shape.Rectangle
-import org.openrndr.shape.bounds
-import org.openrndr.shape.map
-import java.io.File
 
 fun main() {
     application {
@@ -38,14 +32,18 @@ fun main() {
             extend(Screenshots())
 
             val facultyFilterModel = FacultyFilterModel(dataModel)
-            var dateFilter = DateFilter(drawer)
+            val dateFilterModel = DateFilterModel()
+            val idleState = IdleState(15.0)
+            val facultyFilter = FacultyFilter(drawer, facultyFilterModel)
+            val dateFilter = DateFilter(drawer, dateFilterModel)
             val guides = SphericalGuides(drawer)
-            val pointCloud = PointCloud(drawer, dataModel, facultyFilterModel, dateFilter)
+            val pointCloud = PointCloud(drawer, dataModel, facultyFilterModel, dateFilterModel)
             val selector = SelectorWidget(drawer)
             val zoomLock = ZoomLockWidget(drawer)
             val miniDetails = MiniDetails(drawer, dataModel)
             val touchPoints = TouchPoints(drawer)
-            val facultyFilter = FacultyFilter(drawer, facultyFilterModel)
+            val idleSmall = IdleSmall()
+            val idleBig = IdleBig()
             val smallScreenView = ViewBox(drawer, Vector2(0.0, 0.0), 2880, 1920) {
                 guides.draw()
                 pointCloud.draw()
@@ -55,11 +53,16 @@ fun main() {
                 touchPoints.draw()
                 facultyFilter.draw()
                 dateFilter.draw()
+                //idleSmall.draw()
             }
 
-            val details = Details(drawer, dataModel.data)
 
-            val bigScreenView = ViewBox(drawer, Vector2(2880.0, 0.0), 1080, 1920) { details.draw() }
+            val details = Details(drawer, dataModel)
+
+            val bigScreenView = ViewBox(drawer, Vector2(2880.0, 0.0), 1080, 1920) {
+                details.draw(seconds)
+                //idleBig.draw()
+            }
 
             val minimap = Minimap(drawer)
             val minimapView = ViewBox(drawer, Vector2(0.0, height - 128.0), 128, 128) { minimap.draw() }
@@ -69,19 +72,22 @@ fun main() {
                 touchPoints.buttonDown(it)
                 facultyFilter.buttonDown(it)
                 zoomLock.buttonDown(it)
+                //idleMode.exitIdle()
             }
 
             mouse.buttonUp.listen {
                 touchPoints.buttonUp(it)
                 dateFilter.buttonDown(it)
-                dateFilter.buttonUp(it)
+                //dateFilter.buttonUp(it)
                // facultyFilter.buttonUp(it)
+                //idleMode.startTimer()
             }
 
             mouse.dragged.listen {
                 touchPoints.dragged(it)
                 facultyFilter.dragged(it)
                 dateFilter.dragged(it)
+                //idleMode.exitIdle()
             }
 
             val camera = extend(QuaternionCamera())
@@ -121,8 +127,23 @@ fun main() {
                 camera.unlockZoom()
             }
 
+            var idle = false
+      /*      idleMode.idleModeStarted.listen {
+                smallScreenView.
+            }*/
+
+            extend(TimeOperators()) { track(details.animatedCoverParams.lfo) }
+            extend(details.animatedCoverParams.orb) {
+                eye = Vector3(0.0, 0.0, 0.01)
+                dampingFactor = 0.0
+                near = 0.5
+                far = 5000.0
+                userInteraction = false}
+            extend(details.animatedCoverParams.gui) { visible = false }
+
             extend {
                 facultyFilterModel.update()
+                dateFilterModel.update()
 
                 smallScreenView.draw()
                 bigScreenView.draw()
