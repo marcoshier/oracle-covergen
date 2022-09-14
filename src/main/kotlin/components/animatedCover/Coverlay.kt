@@ -23,7 +23,7 @@ val fontList = listOf(
     Pair("data/fonts/Roboto-Medium.ttf", 18.0), // Date
 )
 
-class Section(val rect: Rectangle, val direction: Int = 0, var proxy: ColorBufferProxy): Animatable() {
+open class Section(val rect: Rectangle, val direction: Int = 0): Animatable() {
 
     var currentIndex = 0
     var animatedRect = rect
@@ -46,7 +46,7 @@ class Section(val rect: Rectangle, val direction: Int = 0, var proxy: ColorBuffe
         }
     }
 
-    private fun dynamicRect(parent: Rectangle): Rectangle {
+    fun dynamicRect(parent: Rectangle): Rectangle {
         return when(direction) {
             1 -> rect.scaledBy(1.0, k, 1.0, 1.0).widthScaledTo(parent.width).movedTo(Vector2(parent.x, parent.y + parent.height - animatedRect.height))
             2 -> rect.scaledBy(k, 1.0, 0.0, 1.0).heightScaledTo(parent.height).movedTo(Vector2(parent.x, parent.y + parent.height - animatedRect.height))
@@ -56,9 +56,7 @@ class Section(val rect: Rectangle, val direction: Int = 0, var proxy: ColorBuffe
         }
     }
 
-    fun draw(drawer: Drawer, parentRect: Rectangle, childRect: Rectangle?, text: String) {
-        proxy?.touch()
-        proxy?.priority = 0
+    open fun draw(drawer: Drawer, parentRect: Rectangle, childRect: Rectangle?, text: String) {
 
         updateAnimation()
         animatedRect = dynamicRect(parentRect)
@@ -88,27 +86,54 @@ class Section(val rect: Rectangle, val direction: Int = 0, var proxy: ColorBuffe
 
         drawer.drawStyle.clip = animatedRect
 
+        drawer.fill = ColorRGBa.WHITE.opacify(k)
+        drawer.fontMap = font
 
-        if(proxy != null) {
-            if(proxy!!.state == ColorBufferProxy.State.LOADED) {
-                proxy!!.colorBuffer?.let {
-                    drawer.imageFit(it, container.x, container.y, 100.0, 100.0, horizontalPosition = 0.5, verticalPosition = 0.5)
-                }
-            }
-        } else {
-            drawer.fill = ColorRGBa.WHITE.opacify(k)
-            drawer.fontMap = font
-
-            drawer.writer {
-                box = container
-                text(text.trimIndent())
-            }
+        drawer.writer {
+            box = container
+            text(text.trimIndent())
         }
 
 
         drawer.drawStyle.clip = null
     }
 
+}
+
+class SectionWithQr(rect:Rectangle, direction: Int, var proxy: ColorBufferProxy): Section(rect, direction) {
+
+    override fun draw(drawer: Drawer, parentRect: Rectangle, childRect: Rectangle?, text: String) {
+        proxy?.touch()
+        proxy?.priority = 0
+
+        updateAnimation()
+        animatedRect = dynamicRect(parentRect)
+
+        drawer.run {
+            // mipmaps?
+            isolated {
+                shadeStyle = LinearGradientOKLab(ColorRGBa.GRAY.toOKLABa().opacify(0.5), ColorRGBa.BLACK.toOKLABa().opacify(0.5), rotation = 90.0 * direction)
+                fill = ColorRGBa.WHITE
+                drawStyle.blendMode = BlendMode.MULTIPLY
+                stroke = null
+                rectangle(animatedRect)
+            }
+        }
+
+        drawer.drawStyle.clip = animatedRect
+
+
+
+        var qrSize = if(animatedRect.width > animatedRect.height) animatedRect.height else animatedRect.width
+        if(proxy!!.state == ColorBufferProxy.State.LOADED) {
+            proxy!!.colorBuffer?.let {
+                drawer.imageFit(it, animatedRect.corner.x, animatedRect.corner.y,  qrSize, qrSize)
+            }
+        }
+
+
+        drawer.drawStyle.clip = null
+    }
 }
 
 class Coverlay(val drawer: Drawer, val proxy: ColorBufferProxy, val data: List<String>, val index: Int) {
@@ -140,7 +165,12 @@ class Coverlay(val drawer: Drawer, val proxy: ColorBufferProxy, val data: List<S
                 else -> frame.rect
             }.also {
                 println(subdivisionsLeft)
-                val newSect = if(subdivisionsLeft != 1) Section(it, currentDirection, proxy) else Section(it, currentDirection, proxy)
+
+                val newSect = if(subdivisionsLeft != 1) Section(it, currentDirection) else {
+                    val proxy = colorBufferLoader.loadFromUrl("file:offline-data/qrs/${data[data.size - 1].toInt() + skipPoints}.png")
+                    SectionWithQr(it, currentDirection, proxy)
+                }
+
                 allSections.add(newSect)
 
                 subdivisionsLeft--
@@ -198,10 +228,6 @@ class Coverlay(val drawer: Drawer, val proxy: ColorBufferProxy, val data: List<S
             val child = if(i == allSections.size - 1) null else allSections[i + 1].animatedRect
             section.draw(drawer, parent, child, data[i + 1])
         }
-
-
-        val proxy = colorBufferLoader.loadFromUrl("file:offline-data/qrs/${data[data.size - 1].toInt() + skipPoints}.png")
-        allSections.last().proxy = proxy
 
 
         drawer.drawStyle.clip = null

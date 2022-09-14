@@ -94,7 +94,7 @@ fun main() {
                 touchPoints.dragged(it)
                 facultyFilter.dragged(it)
                 dateFilter.dragged(it)
-                //idleMode.exitIdle()
+                idleState.startTimer()
             }
 
             val qCamera = extend(QuaternionCamera())

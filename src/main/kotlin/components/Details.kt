@@ -77,7 +77,7 @@ class Details(val drawer: Drawer, val dataModel: DataModel, val extendables: Ext
             ::zoom.animate(1.0, 800, Easing.CubicInOut).completed.listen {
 
                 coverlay = Coverlay(drawer, proxy, articleData[index].toList().filter { it != "" }.plus(index.toString()), index).apply {
-                    subdivide(Section(coverlayFrame,  0, this@Cover.proxy))
+                    subdivide(Section(coverlayFrame,  0))
                 }
 
                 ::coverlayOpacity.animate(1.0, 1000).completed.listen {
