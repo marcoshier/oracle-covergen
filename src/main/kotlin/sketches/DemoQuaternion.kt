@@ -1,17 +1,11 @@
 package sketches
 
-import com.github.doyaaaaaken.kotlincsv.client.CsvReader
-import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import components.*
 import extensions.QuaternionCamera
 import org.openrndr.application
 import org.openrndr.extensions.Screenshots
 import org.openrndr.ffmpeg.ScreenRecorder
 import org.openrndr.math.*
-import org.openrndr.shape.Rectangle
-import org.openrndr.shape.bounds
-import org.openrndr.shape.map
-import java.io.File
 
 fun main() {
     application {
@@ -38,14 +32,15 @@ fun main() {
             extend(Screenshots())
 
             val facultyFilterModel = FacultyFilterModel(dataModel)
-            var dateFilter = DateFilter(drawer)
+            val dateFilterModel = DateFilterModel()
+            val facultyFilter = FacultyFilter(drawer, facultyFilterModel)
+            val dateFilter = DateFilter(drawer, dateFilterModel)
             val guides = SphericalGuides(drawer)
-            val pointCloud = PointCloud(drawer, dataModel, facultyFilterModel, dateFilter)
+            val pointCloud = PointCloud(drawer, dataModel, facultyFilterModel, dateFilterModel)
             val selector = SelectorWidget(drawer)
             val zoomLock = ZoomLockWidget(drawer)
             val miniDetails = MiniDetails(drawer, dataModel)
             val touchPoints = TouchPoints(drawer)
-            val facultyFilter = FacultyFilter(drawer, facultyFilterModel)
             val smallScreenView = ViewBox(drawer, Vector2(0.0, 0.0), 2880, 1920) {
                 guides.draw()
                 pointCloud.draw()
@@ -124,10 +119,9 @@ fun main() {
                 camera.unlockZoom()
             }
 
-
-
             extend {
                 facultyFilterModel.update()
+                dateFilterModel.update()
 
                 smallScreenView.draw()
                 bigScreenView.draw()

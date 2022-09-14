@@ -12,7 +12,8 @@ import org.openrndr.math.map
 import org.openrndr.shape.LineSegment
 import org.openrndr.shape.Rectangle
 
-class DateFilter(val drawer: Drawer): Animatable(){
+
+class DateFilter(val drawer: Drawer, val model: DateFilterModel): Animatable(){
 
     var rect = Rectangle(((1920 / 2) * 3) - 60.0, drawer.height / 2.0 - 400.0, 40.0, 800.0)
     var rail = LineSegment(rect.center.x, rect.y, rect.center.x, rect.y + rect.height)
@@ -20,21 +21,21 @@ class DateFilter(val drawer: Drawer): Animatable(){
     val font1 = loadFont("data/fonts/RobotoCondensed-Bold.ttf", 38.0)
 
     inner class Selector(var pos: Double = 0.5) {
-        var year = 0
+        var year = 0.0
 
         init {
-            year = map(0.0, 1.0, 2022.0, 1880.0, pos).toInt()
+            year = map(0.0, 1.0, 2022.0, 1880.0, pos)
         }
 
         fun draw() {
 
-            year = map(0.0, 1.0, 2022.0, 1880.0, pos).toInt()
+            year = map(0.0, 1.0, 2022.0, 1880.0, pos)
 
             val center = rail.position(pos)
 
             drawer.stroke = null
             drawer.fill = ColorRGBa.WHITE
-            drawer.text(year.toString(), center.x - 100.0, center.y)
+            drawer.text(year.toInt().toString(), center.x - 100.0, center.y)
             drawer.circle(center, 25.0)
         }
     }
@@ -65,14 +66,12 @@ class DateFilter(val drawer: Drawer): Animatable(){
         if (mouseEvent.position in rect) {
             mouseEvent.cancelPropagation()
             closestSelector = selectors.minBy { rail.position(it.pos).distanceTo(mouseEvent.position)}
+            model.states[0].year = selectors.minBy { it.year }.year
+            model.states[1].year = selectors.maxBy { it.year }.year
         }
     }
 
     fun buttonUp(mouseEvent: MouseEvent) {
-        if (mouseEvent.position in rect) {
-            mouseEvent.cancelPropagation()
-            closestSelector = null
-        }
     }
 
     fun draw() {
