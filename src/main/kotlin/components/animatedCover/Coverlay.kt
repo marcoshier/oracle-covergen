@@ -2,6 +2,7 @@ package animatedCover
 
 
 import components.animatedCover.AnimatedCover
+import components.skipPoints
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.easing.Easing
 import org.openrndr.color.ColorRGBa

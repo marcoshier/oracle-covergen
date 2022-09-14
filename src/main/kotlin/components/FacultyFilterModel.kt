@@ -33,7 +33,7 @@ class FacultyFilterModel(dataModel: DataModel) {
     val facultyList = dataModel.facultyToColor
     val articleFaculties = dataModel.facultyIndexes
 
-    val states:List<FilterState> = facultyList.map { FilterState(it.first) }
+    val states:List<FilterState> = facultyList.map { FilterState() }
 
     val filterChanged = Event<Unit>()
 

@@ -15,16 +15,12 @@ import sketches.Extendables
 import org.openrndr.shape.ShapeContour
 import org.openrndr.shape.bounds
 import org.openrndr.shape.map
-import textSandbox.Coverlay
-import textSandbox.Section
-import kotlin.math.abs
 
 
 
-class Details(val drawer: Drawer, dataModel: DataModel, val extendables: Extendables) {
+class Details(val drawer: Drawer, val dataModel: DataModel, val extendables: Extendables) {
 
-    val data = dataModel.data
-    val jsons = dataModel.animatedCoverParams
+    val articleData = dataModel.data
 
     class Fade : Animatable() {
         var opacity = 0.0
@@ -279,7 +275,7 @@ class Details(val drawer: Drawer, dataModel: DataModel, val extendables: Extenda
                 }
 
                 if(cover.coverlay != null) {
-                    cover.coverlay!!.draw(cover.coverlayOpacity, seconds)
+                    cover.coverlay!!.draw(cover.coverlayOpacity)
                 }
             }
 
