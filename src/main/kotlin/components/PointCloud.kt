@@ -184,7 +184,7 @@ class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: Facu
         drawer.isolated {
 
             this@PointCloud.shadeStyle.parameter("filterFades", filterModel.states.map { it.fade }.toDoubleArray())
-            this@PointCloud.shadeStyle.parameter("yearRange", dateModel.states.map { it.animatedYear }.sorted().toDoubleArray())
+            this@PointCloud.shadeStyle.parameter("yearRange", dateModel.range().toDoubleArray())
 
             drawer.shadeStyle = this@PointCloud.shadeStyle
             this@PointCloud.shadeStyle.parameter("focusFactor", focusFactor)

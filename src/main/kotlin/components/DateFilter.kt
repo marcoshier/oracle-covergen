@@ -51,11 +51,7 @@ class DateFilter(val drawer: Drawer, val model: DateFilterModel): Animatable(){
             println("draggin $closestSelector")
             val mappedPosition = map(rect.y, rect.y + rect.height, 0.0, 1.0, mouseEvent.position.y)
 
-            closestSelector?.pos = if(closestSelector == selectors[0]) {
-                mappedPosition.coerceIn(selectors[0].pos + 0.025, 1.0)
-            } else {
-                mappedPosition.coerceIn(0.0, selectors[1].pos - 0.025)
-            }
+            closestSelector?.pos = mappedPosition.coerceIn(0.0, 1.0)
         }
     }
 

@@ -8,28 +8,33 @@ class IdleController(val camera: QuaternionCamera) : Animatable() {
 
     var active = false
 
-    fun idleModeStarted() {
+    fun start() {
         active = true
     }
 
-    fun idleModeEnded() {
+    fun end() {
         active = false
     }
 
-    var rotX = 0.0
-    var rotY = 0.0
+    var rotX = 0.1
+    var rotY = 0.1
 
     fun update() {
         updateAnimation()
 
-        if (!hasAnimations() && active) {
+        if (!hasAnimations()) {
 
-            Quaternion.fromAngles(
+
+        }
+
+        if (active) {
+            camera.orientation = Quaternion.fromAngles(
                 rotX,
                 rotY,
-                0.0)
+                0.0
+            ) * camera.orientation
 
-
+            camera.orientationChanged.trigger(camera.orientation)
         }
 
     }

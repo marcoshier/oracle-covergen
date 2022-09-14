@@ -59,6 +59,12 @@ class DateFilterModel(val articleYears: List<Float>) {
         return articleYears[pointIndex] in (low .. high)
     }
 
+    fun range(): List<Double> {
+        val low = min(states[0].year, states[1].year)
+        val high = max(states[0].year, states[1].year)
+        return listOf(low, high)
+    }
+
     fun reset() {
         states[0].year = 1880.0
         states[1].year = 2022.0

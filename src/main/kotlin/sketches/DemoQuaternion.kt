@@ -64,6 +64,7 @@ fun main() {
             }
 
 
+
             val details = Details(drawer, dataModel, extendables)
 
             val bigScreenView = ViewBox(drawer, Vector2(2880.0, 0.0), 1080, 1920) {
@@ -98,6 +99,7 @@ fun main() {
             }
 
             val qCamera = extend(QuaternionCamera())
+            val idleController = IdleController(qCamera)
 
             qCamera.orientationChanged.listen {
                 dataModel.lookAt = (it.matrix.matrix44.inversed * Vector4(0.0, 0.0, -10.0, 1.0)).xyz
@@ -146,10 +148,12 @@ fun main() {
 
                 facultyFilterModel.reset()
                 dateFilterModel.reset()
+                idleController.start()
             }
             idleState.idleModeEnded.listen {
                 idleSmall.fadeOut()
                 idleBig.fadeOut()
+                idleController.end()
             }
 
             facultyFilterModel.filterChanged.listen {
@@ -170,6 +174,7 @@ fun main() {
                 idleState.update()
                 facultyFilterModel.update()
                 dateFilterModel.update()
+                idleController.update()
 
                 smallScreenView.draw()
                 bigScreenView.draw()
