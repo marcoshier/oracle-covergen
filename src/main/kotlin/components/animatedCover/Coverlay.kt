@@ -11,6 +11,7 @@ import org.openrndr.extra.color.spaces.toOKLABa
 import org.openrndr.extra.imageFit.imageFit
 import org.openrndr.extra.shadestyles.LinearGradientOKLab
 import org.openrndr.internal.colorBufferLoader
+import org.openrndr.math.Matrix55
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
 
@@ -113,6 +114,7 @@ class SectionWithQr(rect:Rectangle, direction: Int, var proxy: ColorBufferProxy)
             // mipmaps?
             isolated {
                 shadeStyle = LinearGradientOKLab(ColorRGBa.GRAY.toOKLABa().opacify(0.5), ColorRGBa.BLACK.toOKLABa().opacify(0.5), rotation = 90.0 * direction)
+
                 fill = ColorRGBa.WHITE
                 drawStyle.blendMode = BlendMode.MULTIPLY
                 stroke = null
@@ -127,7 +129,11 @@ class SectionWithQr(rect:Rectangle, direction: Int, var proxy: ColorBufferProxy)
         var qrSize = if(animatedRect.width > animatedRect.height) animatedRect.height else animatedRect.width
         if(proxy!!.state == ColorBufferProxy.State.LOADED) {
             proxy!!.colorBuffer?.let {
+                drawer.pushStyle()
+                drawer.drawStyle.colorMatrix = Matrix55.IDENTITY
+                it.filter(MinifyingFilter.LINEAR_MIPMAP_LINEAR, MagnifyingFilter.NEAREST)
                 drawer.imageFit(it, animatedRect.corner.x, animatedRect.corner.y,  qrSize, qrSize)
+                drawer.popStyle()
             }
         }
 
@@ -219,7 +225,7 @@ class Coverlay(val drawer: Drawer, val proxy: ColorBufferProxy, val data: List<S
             box = initialFrame.offsetEdges(-20.0).scaledBy(0.64, 1.0, 0.0, 0.0)
             gaplessNewLine()
             val text = data[0]
-            text(index.toString() + text.take((text.length * opacity).toInt()))
+            text(text.take((text.length * opacity).toInt()))
         }
 
 

@@ -5,7 +5,7 @@ import org.openrndr.animatable.Animatable
 import org.openrndr.extra.noise.uniform
 import org.openrndr.math.Quaternion
 
-class IdleController(val camera: QuaternionCamera) : Animatable() {
+class IdleController(val camera: QuaternionCamera, val dataModel:DataModel) : Animatable() {
 
     var active = false
 
@@ -31,9 +31,17 @@ class IdleController(val camera: QuaternionCamera) : Animatable() {
             ::dummy.animate(1.0, Int.uniform(200, 3000).toLong())
             ::dummy.complete()
             ::rotX.animate(0.0, 100)
-            ::rotY.animate(0.0, 100)
-            ::dummy.animate(1.0, Int.uniform(2000, 3000).toLong())
-            ::dummy.complete()
+            ::rotY.animate(0.0, 100).completed.listen {
+
+                if (dataModel.activePoints.isNotEmpty()) {
+
+                    ::dummy.animate(1.0, Int.uniform(5000, 8000).toLong())
+                    ::dummy.complete()
+                } else {
+                    ::dummy.animate(1.0, Int.uniform(1000, 2000).toLong())
+                    ::dummy.complete()
+                }
+            }
 
         }
 

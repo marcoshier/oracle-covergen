@@ -116,7 +116,7 @@ class DataModel() {
             if(it != null) {
                 facultyNames.indexOf(it)
             } else {
-                -1
+                8
             }
         }
 
