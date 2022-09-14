@@ -53,7 +53,7 @@ class FacultyFilter(val drawer: Drawer, val model: FacultyFilterModel) : Animata
         return Rectangle(20.0, drawer.height/2.0 + 120.0 * (index - 4), 100.0, 100.0)
     }
 
-    val font1 = loadFont("data/fonts/RobotoCondensed-Bold.ttf", 36.0)
+    val font1 = loadFont("data/fonts/RobotoCondensed-Regular.ttf", 38.0)
     val font2 = loadFont("data/fonts/RobotoCondensed-Bold.ttf", 30.0)
 
     fun draw() {
@@ -73,13 +73,14 @@ class FacultyFilter(val drawer: Drawer, val model: FacultyFilterModel) : Animata
                 drawer.stroke = null
                 drawer.fontMap = font1
 
-                val text = name.partition { it.isUpperCase() }.first
+
+                val text = name.substring(name.indexOf("(")+1,name.indexOf(")")).uppercase()
                 val textWidth = text.sumOf { font1.characterWidth(it) }
-                drawer.text(text, rf.corner.x + (rf.width - textWidth) / 2.0 - 4.0, rf.center.y + 10.0)
+                drawer.text(text, rf.corner.x + (rf.width - textWidth) / 2.0 - 4.0, rf.center.y + 12.5)
 
                 val tw = this@FacultyFilter.model.states[index].fade
                 drawer.fontMap = font2
-                drawer.text(name.uppercase().take((name.length * tw).toInt()), rf.corner.x + rf.width + 10.0, rf.center.y + 10.0)
+                drawer.text(name.take(name.indexOf("(") - 1).uppercase().take((name.length * tw).toInt()), rf.corner.x + rf.width + 10.0, rf.center.y + 10.0)
             }
         }
     }

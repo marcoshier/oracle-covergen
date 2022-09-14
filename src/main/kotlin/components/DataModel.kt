@@ -76,7 +76,7 @@ class DataModel() {
     val data = loadArticleData()
 
     val facultyNames = listOf(
-        "Architecture and the Built Environment",
+        "Architecture and the Built Environment (ABE)",
         "Aerospace Engineering (AE)",
         "Applied Sciences (AS)",
         "Civil Engineering and Geosciences (CEG)",
