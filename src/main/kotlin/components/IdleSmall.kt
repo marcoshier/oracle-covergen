@@ -22,11 +22,11 @@ class IdleSmall(val drawer: Drawer): Animatable() {
     fun draw() {
         updateAnimation()
 
-        drawer.isolated {
-            defaults()
-
-            drawer.fill = ColorRGBa.GREEN.opacify(fade)
-            drawer.circle(100.0, 100.0, 100.0)
-        }
+//        drawer.isolated {
+//            defaults()
+//
+//            drawer.fill = ColorRGBa.GREEN.opacify(fade)
+//            drawer.circle(100.0, 100.0, 100.0)
+//        }
     }
 }

@@ -73,7 +73,7 @@ fun main() {
             }
 
             val minimap = Minimap(drawer)
-            val minimapView = ViewBox(drawer, Vector2(0.0, height - 128.0), 128, 128) { minimap.draw() }
+            val minimapView = ViewBox(drawer, Vector2(2880.0/2.0 - 64.0, height/2.0 - 64.0), 128, 128) { minimap.draw() }
 
 
             mouse.buttonDown.listen {
@@ -107,6 +107,7 @@ fun main() {
             }
             qCamera.zoomLockStarted.listen {
                 zoomLock.fadeIn()
+                minimap.fadeIn()
             }
 
             qCamera.zoomOutStarted.listen {
@@ -140,6 +141,7 @@ fun main() {
 
             zoomLock.zoomUnlockRequested.listen {
                 qCamera.unlockZoom()
+                minimap.fadeOut()
             }
 
             idleState.idleModeStarted.listen {
@@ -149,6 +151,8 @@ fun main() {
                 facultyFilterModel.reset()
                 dateFilterModel.reset()
                 idleController.start()
+
+                zoomLock.zoomUnlock()
             }
             idleState.idleModeEnded.listen {
                 idleSmall.fadeOut()
@@ -167,6 +171,9 @@ fun main() {
             //val g = extend(extendables.gui)
             //extend(TimeOperators()) { track(extendables.lfo) }
             //extend(extendables.orb)
+
+
+            idleState.startTimer()
 
             extend {
                 //g.visible = false
