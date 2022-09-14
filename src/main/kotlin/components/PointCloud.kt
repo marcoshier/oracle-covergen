@@ -11,7 +11,7 @@ import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import org.openrndr.math.map
 
-class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: FacultyFilterModel, var dateFilter: DateFilter) : Animatable() {
+class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: FacultyFilterModel, var dateModel: DateFilterModel) : Animatable() {
 
     val positions = dataModel.points
     val tiles = arrayTexture(4096,4096,2)
@@ -161,13 +161,11 @@ class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: Facu
                             }
                         }
                         
-                        float d = 1.0;
-                    if(i_year >= p_yearRange[0] && i_year <= p_yearRange[1]) {
-                            d = 1.0;
-                        } else {
-                            d = 0.0;
-                        }
+                        float y1 = ceil(p_yearRange[0]) - p_yearRange[0];
+                        float y2 = ceil(p_yearRange[1]) - p_yearRange[1];
                         
+                        float d = clamp(1.0 - y1 - y2, 0.0, 1.0);
+                       
                         x_color.a *= (f * d * 0.99 + 0.01);                        
                         x_position.xyz *= size;
                         x_position.xyz += voffset;
@@ -185,7 +183,7 @@ class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: Facu
         drawer.isolated {
 
             this@PointCloud.shadeStyle.parameter("filterFades", filterModel.states.map { it.fade }.toDoubleArray())
-            this@PointCloud.shadeStyle.parameter("yearRange", dateFilter.range.toIntArray())
+            this@PointCloud.shadeStyle.parameter("yearRange", dateModel.states.map { it.year }.toDoubleArray())
 
             drawer.shadeStyle = this@PointCloud.shadeStyle
             this@PointCloud.shadeStyle.parameter("focusFactor", focusFactor)
