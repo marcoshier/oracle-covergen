@@ -24,13 +24,13 @@ val fontList = listOf(
     Pair("data/fonts/Roboto-Medium.ttf", 18.0), // Date
 )
 
-class Section(val rect: Rectangle, val direction: Int = 0): Animatable() {
+class Section(val rect: Rectangle, val direction: Int = 0, var proxy: ColorBufferProxy): Animatable() {
 
     var currentIndex = 0
     var animatedRect = rect
     var k = 0.0
     var font = loadFont(fontList[direction].first, fontList[direction].second)
-    var proxy: ColorBufferProxy? = null
+
 
     fun fold(index: Int) {
         animate(::k, 1.0, 0).completed.listen {
@@ -112,7 +112,7 @@ class Section(val rect: Rectangle, val direction: Int = 0): Animatable() {
 
 }
 
-class Coverlay(val drawer: Drawer, val proxy: ColorBufferProxy? = null, val data: List<String>, val index: Int) {
+class Coverlay(val drawer: Drawer, val proxy: ColorBufferProxy, val data: List<String>, val index: Int) {
 
 
     var subdivisionsLeft = data.size - 1
@@ -141,7 +141,7 @@ class Coverlay(val drawer: Drawer, val proxy: ColorBufferProxy? = null, val data
                 else -> frame.rect
             }.also {
                 println(subdivisionsLeft)
-                val newSect = if(subdivisionsLeft != 1) Section(it, currentDirection) else Section(it, currentDirection)
+                val newSect = if(subdivisionsLeft != 1) Section(it, currentDirection, proxy) else Section(it, currentDirection, proxy)
                 allSections.add(newSect)
 
                 subdivisionsLeft--

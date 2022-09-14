@@ -40,7 +40,7 @@ class Details(val drawer: Drawer, val articleData: List<ArticleData>, val dataMo
 
     var coverlayFrame = Rectangle(175.0, 350.0, 1080.0 - 350.0, 1920.0 - 700.0)
 
-    inner class Cover(val index: Int) : Animatable() {
+    inner class Cover(val index: Int, var proxy:ColorBufferProxy) : Animatable() {
         var width = 0.0
         var height = 0.0
         var x = 40.0
@@ -52,7 +52,6 @@ class Details(val drawer: Drawer, val articleData: List<ArticleData>, val dataMo
         var removing = false
         var dead = false
         var dummy = 0.0
-        var proxy: ColorBufferProxy? = null
 
         var image: ColorBuffer? = null
         var coverlay: Coverlay? = null
@@ -75,7 +74,7 @@ class Details(val drawer: Drawer, val articleData: List<ArticleData>, val dataMo
             ::zoom.animate(1.0, 800, Easing.CubicInOut).completed.listen {
 
                 coverlay = Coverlay(drawer, proxy, articleData[index].toList().filter { it != "" }.plus(index.toString()), index).apply {
-                    subdivide(Section(coverlayFrame))
+                    subdivide(Section(coverlayFrame,  0, this@Cover.proxy))
                 }
 
                 ::coverlayOpacity.animate(1.0, 1000).completed.listen {
@@ -167,6 +166,7 @@ class Details(val drawer: Drawer, val articleData: List<ArticleData>, val dataMo
                         c.removing = false
                         c.dead = true
                         c.proxy?.cancel()
+                        covers.remove(i)
                     }
                 }
             }
@@ -177,7 +177,7 @@ class Details(val drawer: Drawer, val articleData: List<ArticleData>, val dataMo
 
             val position = dataModel.latentPoints[i].map(latentBounds, drawBounds)
 
-            val cover = covers.getOrPut(i) { Cover(i) }
+            val cover = covers.getOrPut(i) { Cover(i, colorBufferLoader.loadFromUrl("file:offline-data/covers/png/${skipPoints + i}.png", queue = false)) }
             cover.dead = false
 
             cover.apply {
@@ -199,8 +199,7 @@ class Details(val drawer: Drawer, val articleData: List<ArticleData>, val dataMo
 
         for (i in added) {
 
-            val cover = covers.getOrPut(i) { Cover(i) }
-            cover.proxy = colorBufferLoader.loadFromUrl("file:offline-data/covers/png/${skipPoints + i}.png", queue = false)
+            val cover = covers.getOrPut(i) { Cover(i, colorBufferLoader.loadFromUrl("file:offline-data/covers/png/${skipPoints + i}.png", queue = false)) }
 
             cover.dead = false
             cover.removing = false
@@ -223,7 +222,7 @@ class Details(val drawer: Drawer, val articleData: List<ArticleData>, val dataMo
             }
 
         }
-        covers.values.removeIf { it.dead }
+
     }
 
     fun heroPointChanged(event: HeroPointChangedEvent) {
@@ -250,9 +249,17 @@ class Details(val drawer: Drawer, val articleData: List<ArticleData>, val dataMo
         activeCover?.updateAnimation()
 
 
-        if (fade.opacity < 0.5) {
-            return
+        drawer.isolated {
+
+            drawer.defaults()
+            drawer.fontMap = loadFont("data/fonts/RobotoCondensed-Regular.ttf", 16.0)
+            var line = 0
+            for ((k, v) in covers) {
+                drawer.text("$k - ${dataModel.data[k].title}", 40.0, line * 20.0 + 40.0)
+                line++
+            }
         }
+
 
 
         drawer.isolated {

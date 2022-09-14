@@ -3,6 +3,8 @@ package components
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.easing.Easing
 import org.openrndr.events.Event
+import java.lang.Double.max
+import java.lang.Double.min
 import javax.swing.JSpinner.DateEditor
 
 class DateState(year: Double): Animatable() {
@@ -24,13 +26,30 @@ class DateState(year: Double): Animatable() {
 
 }
 
-class DateFilterModel {
+class DateFilterModel(val articleYears: List<Float>) {
+
+    val filterChanged = Event<Unit>()
 
     val states:List<DateState> = listOf(DateState(1880.0), DateState(2022.0))
+
+    init {
+        states.forEach {
+            it.stateChanged.listen {
+                filterChanged.trigger(Unit)
+            }
+        }
+    }
 
     fun update() {
         for (state in states) {
             state.updateAnimation()
         }
     }
+
+    fun filter(pointIndex: Int) : Boolean {
+        val low = min(states[0].year, states[1].year)
+        val high = max(states[0].year, states[1].year)
+        return articleYears[pointIndex] in (low .. high)
+    }
+
 }

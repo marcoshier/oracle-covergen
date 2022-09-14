@@ -27,12 +27,15 @@ const val skipPoints = 142082
 
 class ArticleData(val title: String, val author:String, val faculty:String, val department: String, val date:String) {
 
+
     fun toList():List<String> {
         return listOf(title, author, faculty, department, date)
     }
 }
 
-class DataModel {
+class DataModel() {
+    lateinit var dateFilter: DateFilterModel
+    lateinit var facultyFilter: FacultyFilterModel
 
     private fun loadLatentPoints() : List<Vector2> {
         val pointsData = csvReader().readAllWithHeader(File("offline-data/graph/cover-latent.csv")).drop(skipPoints).map {
@@ -54,6 +57,7 @@ class DataModel {
     }
     val points = loadPoints()
     val latentPoints = loadLatentPoints()
+    private var muted = false
 
     private fun loadArticleData(): List<ArticleData> {
         val entries = Gson().fromJson(FileReader(File("offline-data/graph/mapped-v2r1.json")), Array<Entry>::class.java)
@@ -164,12 +168,30 @@ class DataModel {
     var selectionRadius = 0.24
 
     fun findActivePoints(): List<Int> {
-        require(data.size == points.size)
-        return kdtree.findAllInRadius(lookAt, selectionRadius).sortedBy { it.distanceTo(lookAt) }.map {
-            pointIndices[it] ?: error("point not found")
+        if (muted) {
+            return emptyList()
+        } else {
+
+            require(data.size == points.size)
+            return kdtree.findAllInRadius(lookAt, selectionRadius).sortedBy { it.distanceTo(lookAt) }.map {
+                pointIndices[it] ?: error("point not found")
+            }.filter {
+                dateFilter.filter(it)
+            }
         }
     }
 
+    fun filterChanged() {
+        activePoints = findActivePoints()
+    }
 
+    fun muteActivePoints() {
+        muted = true
+        activePoints = emptyList()
+    }
 
+    fun unmuteActivePoints() {
+        muted = false
+        activePoints = findActivePoints()
+    }
 }

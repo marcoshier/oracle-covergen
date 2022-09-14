@@ -33,6 +33,8 @@ class FacultyFilterModel(dataModel: DataModel) {
     var facultyList = dataModel.facultyToColor
     val states:List<FilterState> = facultyList.map { FilterState(it.first) }
 
+    val filterChanged = Event<Unit>()
+
     init {
         states.forEach {
             it.stateChanged.listen {
@@ -41,6 +43,7 @@ class FacultyFilterModel(dataModel: DataModel) {
                         it.visible = true
                     }
                 }
+                filterChanged.trigger(Unit)
             }
         }
     }

@@ -32,8 +32,10 @@ fun main() {
             extend(Screenshots())
 
             val facultyFilterModel = FacultyFilterModel(dataModel)
-            val dateFilterModel = DateFilterModel()
+            val dateFilterModel = DateFilterModel(dataModel.years)
             val facultyFilter = FacultyFilter(drawer, facultyFilterModel)
+
+            dataModel.dateFilter = dateFilterModel
             val dateFilter = DateFilter(drawer, dateFilterModel)
             val guides = SphericalGuides(drawer)
             val pointCloud = PointCloud(drawer, dataModel, facultyFilterModel, dateFilterModel)
@@ -95,10 +97,11 @@ fun main() {
                 pointCloud.fadeOut()
                 facultyFilter.fadeOut()
                 // this is a bit of a hack to make sure the active points is emptied
-                dataModel.activePoints = emptyList()
+                dataModel.muteActivePoints()
                 details.fadeOut()
             }
             camera.zoomInFinished.listen {
+                dataModel.unmuteActivePoints()
                 details.fadeIn()
                 selector.fadeIn()
                 miniDetails.fadeIn()
