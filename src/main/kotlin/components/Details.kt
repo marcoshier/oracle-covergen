@@ -9,6 +9,7 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.extra.imageFit.imageFit
 import org.openrndr.internal.colorBufferLoader
+import org.openrndr.math.Matrix55
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
 import sketches.Extendables
@@ -217,20 +218,28 @@ class Details(val drawer: Drawer, val dataModel: DataModel, val extendables: Ext
             drawer.depthWrite = false
             drawer.depthTestPass = DepthTestPass.ALWAYS
 
-            for (cover in covers.values.sortedBy { it.zoom }) {
-                val minimizedRect = Rectangle(cover.x - cover.width / 2.0, cover.y, cover.width, cover.height)
-                val dynamicRect =  coverlayFrame * cover.zoom + minimizedRect * (1.0 - cover.zoom)
-                drawer.rectangle(dynamicRect)
+            for ( (index, cover) in covers.entries.toList().sortedBy { it.value.zoom }) {
 
-                cover.proxy.touch()
-                val cb = cover.proxy.colorBuffer
 
-                if(cb != null) {
-                    drawer.imageFit(cb, dynamicRect)
-                }
 
-                if(cover.coverlay != null) {
-                    cover.coverlay!!.draw(cover.coverlayOpacity)
+                drawer.isolated {
+                    val color = dataModel.facultyColors.getOrNull(dataModel.facultyIndexes[index])?:ColorRGBa.WHITE
+
+                    drawer.drawStyle.colorMatrix = tint(color) * (grayscale()*0.5 + Matrix55.IDENTITY*0.5)
+                    val minimizedRect = Rectangle(cover.x - cover.width / 2.0, cover.y, cover.width, cover.height)
+                    val dynamicRect = coverlayFrame * cover.zoom + minimizedRect * (1.0 - cover.zoom)
+                    drawer.rectangle(dynamicRect)
+
+                    cover.proxy.touch()
+                    val cb = cover.proxy.colorBuffer
+
+                    if (cb != null) {
+                        drawer.imageFit(cb, dynamicRect)
+                    }
+
+                    if (cover.coverlay != null) {
+                        cover.coverlay!!.draw(cover.coverlayOpacity)
+                    }
                 }
             }
         }

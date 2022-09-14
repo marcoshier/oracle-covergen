@@ -75,9 +75,10 @@ class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: Facu
                 write(position)
                 val f = position.length.map(10.0, 12.0, 0.0, 1.0)
                 //write(ColorRGBa.PINK.toOKLABa().mix(ColorRGBa.BLUE.toOKLABa(), f).toRGBa())
-                write(ColorRGBa.GRAY)
+                //write(ColorRGBa.GRAY)
 
                 val activeFaculty = facultyIndexes[index]
+                write(dataModel.facultyColors.getOrNull(activeFaculty)?:ColorRGBa.WHITE)
 
                 for (j in 0 until 8) {
                     val value = if (j == activeFaculty) 1 else 0
@@ -119,8 +120,11 @@ class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: Facu
                                                             
                     vec4 c = texture(p_tiles, vec3(uv, k));
   
-                    
-                    x_fill = c * x_color;
+                    float cd = dot(c.rgb, vec3(0.33,0.33,0.33));
+                    vec4 m = vec4(cd, cd, cd, 1.0);
+                    vec4 mc = mix(c, m, 0.5);
+                                        
+                    x_fill = mc * x_color;
                     
                     """.trimIndent()
 
@@ -129,6 +133,7 @@ class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: Facu
         """.trimIndent()
         vertexTransform = """
                         vec3 voffset = (x_viewMatrix * vec4(i_offset, 1.0)).xyz;
+                        
                         x_viewMatrix = mat4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
                         vec4 cp = x_projectionMatrix * vec4(voffset, 1.0);
                         vec2 sp = cp.xy / cp.w;
@@ -147,7 +152,7 @@ class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: Facu
                             x_color = vec4(1.0, 1.0, 1.0, 1.0);
                         }
                         
-                        x_color = vec4(1.0);
+                        x_color = i_color;
 
                         float f = 0.0;
                         for (int i = 0; i < 4; ++i) {
