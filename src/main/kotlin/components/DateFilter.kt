@@ -20,26 +20,23 @@ class DateFilter(val drawer: Drawer, val model: DateFilterModel): Animatable(){
 
     val font1 = loadFont("data/fonts/RobotoCondensed-Bold.ttf", 38.0)
 
-    inner class Selector(var pos: Double = 0.5) {
+    inner class Selector(var pos: Double = 0.5, val index: Int) {
         var year = 0.0
 
-        init {
-            year = map(0.0, 1.0, 2022.0, 1880.0, pos)
-        }
 
         fun draw() {
 
-            year = map(0.0, 1.0, 2022.0, 1880.0, pos)
+            year = model.states[index].year
 
             val center = rail.position(pos)
 
             drawer.stroke = null
             drawer.fill = ColorRGBa.WHITE
-            drawer.text(year.toInt().toString(), center.x - 100.0, center.y)
+            drawer.text("${year.toInt()}", center.x - 120.0, center.y)
             drawer.circle(center, 25.0)
         }
     }
-    val selectors = listOf(Selector(0.0), Selector(1.0))
+    val selectors = listOf(Selector(0.0, 1), Selector(1.0, 0))
     var closestSelector: Selector? = null
 
     var range = listOf(selectors[0].year, selectors[1].year).sorted()
@@ -52,9 +49,9 @@ class DateFilter(val drawer: Drawer, val model: DateFilterModel): Animatable(){
             val mappedPosition = map(rect.y, rect.y + rect.height, 0.0, 1.0, mouseEvent.position.y)
 
             closestSelector?.pos = if(closestSelector == selectors[0]) {
-                mappedPosition.coerceIn(0.0, selectors[1].pos - 0.025)
+                mappedPosition.coerceIn(selectors[1].pos + 0.025, 1.0)
             } else {
-                mappedPosition.coerceIn(selectors[0].pos + 0.025, 1.0)
+                mappedPosition.coerceIn(0.0, selectors[1].pos - 0.025)
             }
             model.states[0].year = selectors.minBy { it.year }.year
             model.states[1].year = selectors.maxBy { it.year }.year
