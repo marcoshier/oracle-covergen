@@ -4,7 +4,7 @@ import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.easing.Easing
 import org.openrndr.events.Event
 
-class FilterState(val facultyName: String) : Animatable() {
+class FilterState : Animatable() {
 
     val stateChanged = Event<Unit>()
     var visible: Boolean = true
@@ -31,7 +31,7 @@ class FilterState(val facultyName: String) : Animatable() {
 class FacultyFilterModel(dataModel: DataModel) {
 
     var facultyList = dataModel.facultyToColor
-    val states:List<FilterState> = facultyList.map { FilterState(it.first) }
+    val states:List<FilterState> = facultyList.map { FilterState() }
 
     val filterChanged = Event<Unit>()
 

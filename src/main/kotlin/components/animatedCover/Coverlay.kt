@@ -1,17 +1,15 @@
-package textSandbox
+package animatedCover
 
-import components.skipPoints
-import org.openrndr.KEY_SPACEBAR
+
+import components.animatedCover.AnimatedCover
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.easing.Easing
-import org.openrndr.application
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.extra.color.spaces.toOKLABa
 import org.openrndr.extra.imageFit.imageFit
 import org.openrndr.extra.shadestyles.LinearGradientOKLab
 import org.openrndr.internal.colorBufferLoader
-import org.openrndr.math.IntVector2
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
 
