@@ -7,13 +7,17 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.extra.imageFit.imageFit
 import org.openrndr.internal.colorBufferLoader
+import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
+import org.openrndr.shape.ShapeContour
+import org.openrndr.shape.bounds
+import org.openrndr.shape.map
 import textSandbox.Coverlay
 import textSandbox.Section
 import kotlin.math.abs
 
 
-class Details(val drawer: Drawer, val data: List<ArticleData>) {
+class Details(val drawer: Drawer, val articleData: List<ArticleData>, val dataModel: DataModel) {
 
     class Fade : Animatable() {
         var opacity = 0.0
@@ -41,6 +45,10 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
         var height = 0.0
         var x = 40.0
         var y = 40.0
+
+        var clippedX = 40.0
+        var clippedY = 40.0
+
         var removing = false
         var dead = false
         var dummy = 0.0
@@ -51,12 +59,22 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
         var coverlayOpacity = 0.0
         var zoom = 0.0
 
+
+        fun updateClippedCoordinates(clipRectangle: Rectangle, clipContour: ShapeContour) {
+            val test = Vector2(x, y)
+            if (clipRectangle.contains(test)) {
+                val clippedCoord = clipContour.nearest(test)
+                clippedX = clippedCoord.position.x
+                clippedY = clippedCoord.position.y
+            }
+        }
+
         fun zoomIn() {
             ::zoom.cancel()
             ::coverlayOpacity.cancel()
             ::zoom.animate(1.0, 800, Easing.CubicInOut).completed.listen {
 
-                coverlay = Coverlay(drawer, proxy, data[index].toList().filter { it != "" }.plus(index.toString()), index).apply {
+                coverlay = Coverlay(drawer, proxy, articleData[index].toList().filter { it != "" }.plus(index.toString()), index).apply {
                     subdivide(Section(coverlayFrame))
                 }
 
@@ -128,31 +146,36 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
         val removed = oldPoints subtract newPoints
         val added = newPoints subtract oldPoints
 
+        val latentBounds = newPoints.map { dataModel.latentPoints[it] }.bounds
+        val drawBounds =Rectangle(0.0, 0.0, 1080.0, 1920.0)
+
+
         for (i in removed) {
             covers[i]?.let { c ->
 
                 c.dead = false
                 c.removing = true
-                c.proxy?.cancel()
+
                 c.apply {
                     c.cancel()
                     c::width.cancel()
                     c::height.cancel()
                     c::dummy.cancel()
-                    c::width.animate(0.0, 1500, Easing.CubicInOut)
+                    c::width.animate(1.0, 1500, Easing.CubicInOut)
                     c::height.animate(0.0, 1500, Easing.CubicInOut)
                     c::dummy.animate(1.0, 1500).completed.listen {
                         c.removing = false
                         c.dead = true
+                        c.proxy?.cancel()
                     }
                 }
             }
         }
 
+
         for ((index, i) in newPoints.withIndex()) {
 
-            val ax = (index % 10) * 60.0 + 40.0
-            val ay = (index / 10) * 60.0 + 40.0
+            val position = dataModel.latentPoints[i].map(latentBounds, drawBounds)
 
             val cover = covers.getOrPut(i) { Cover(i) }
             cover.dead = false
@@ -160,14 +183,15 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
             cover.apply {
                 cover::x.cancel()
                 cover::y.cancel()
-                val d = if (i in added) 1.0 else 1.0
-                val dx = (abs(ax - cover.x) * d).toLong()
-                val dy = (abs(ay - cover.y) * d).toLong()
-
-                cover::x.animate(ax, dx, Easing.QuadInOut)
-                cover::x.complete()
-                cover::y.animate(ay, dy, Easing.QuadInOut)
-                cover::y.complete()
+//                val d = if (i in added) 1.0 else 1.0
+//                val dx = (abs(ax - cover.x) * d).toLong()
+//                val dy = (abs(ay - cover.y) * d).toLong()
+                val dx = 500L
+                val dy = 500L
+                cover::x.animate(position.x, dx, Easing.QuadInOut)
+                //cover::x.complete()
+                cover::y.animate(position.y, dy, Easing.QuadInOut)
+                //cover::y.complete()
             }
 
 
@@ -181,21 +205,33 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
             cover.dead = false
             cover.removing = false
 
+
             cover.proxy!!.events.loaded.listen {
+
+
                 cover.image = cover.proxy?.colorBuffer
                 cover.width = 50.0
                 cover.apply {
+                    cover::x.cancel()
+                    cover::y.cancel()
+                    val position = dataModel.latentPoints[i].map(latentBounds, drawBounds)
+                    cover.x = position.x
+                    cover.y = position.y
                     cover::height.cancel()
                     cover::height.animate(50.0, 500, Easing.CubicInOut)
                 }
             }
 
         }
-
-        val point = if(newPoints.isNotEmpty()) newPoints[0] else null
-        updateMainCover(point)
-
         covers.values.removeIf { it.dead }
+    }
+
+    fun heroPointChanged(event: HeroPointChangedEvent) {
+        if (event.newPoint != null) {
+            covers[event.newPoint]?.proxy?.priority = 0
+        }
+        updateMainCover(event.newPoint)
+
     }
 
 
@@ -204,9 +240,12 @@ class Details(val drawer: Drawer, val data: List<ArticleData>) {
         fade.updateAnimation()
 
 
-        for (cover in covers.values) {
-            cover.proxy!!.events.loaded.deliver()
+        val clipRectangle = Rectangle(200.0, 400.0, 1080.0-400.0, 1920.0-800.0).offsetEdges(50.0)
+        val clipContour = clipRectangle.contour
+
+        for (cover in covers.values.map { it }) {
             cover.updateAnimation()
+            cover.updateClippedCoordinates(clipRectangle, clipContour)
         }
         activeCover?.updateAnimation()
 

@@ -57,7 +57,7 @@ fun main() {
                 dateFilter.draw()
             }
 
-            val details = Details(drawer, dataModel.data)
+            val details = Details(drawer, dataModel.data, dataModel)
 
             val bigScreenView = ViewBox(drawer, Vector2(2880.0, 0.0), 1080, 1920) { details.draw() }
 
@@ -116,10 +116,15 @@ fun main() {
                 details.updateActive(it.oldPoints, it.newPoints)
                 miniDetails.updateActive(it.oldPoints, it.newPoints)
             }
+            dataModel.heroPointChanged.listen {
+                details.heroPointChanged(it)
+            }
 
             zoomLock.zoomUnlockRequested.listen {
                 camera.unlockZoom()
             }
+
+
 
             extend {
                 facultyFilterModel.update()

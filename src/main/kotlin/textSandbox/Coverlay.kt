@@ -58,6 +58,8 @@ class Section(val rect: Rectangle, val direction: Int = 0): Animatable() {
     }
 
     fun draw(drawer: Drawer, parentRect: Rectangle, childRect: Rectangle?, text: String) {
+        proxy?.touch()
+        proxy?.priority = 0
 
         updateAnimation()
         animatedRect = dynamicRect(parentRect)

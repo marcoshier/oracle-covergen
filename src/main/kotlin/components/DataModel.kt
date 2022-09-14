@@ -21,6 +21,8 @@ import kotlin.io.path.bufferedReader
 
 class ActivePointsChangedEvent(val oldPoints: List<Int>, val newPoints: List<Int>)
 
+class HeroPointChangedEvent(val oldPoint: Int?, val newPoint: Int?)
+
 const val skipPoints = 142082
 
 class ArticleData(val title: String, val author:String, val faculty:String, val department: String, val date:String) {
@@ -31,6 +33,13 @@ class ArticleData(val title: String, val author:String, val faculty:String, val 
 }
 
 class DataModel {
+
+    private fun loadLatentPoints() : List<Vector2> {
+        val pointsData = csvReader().readAllWithHeader(File("offline-data/graph/cover-latent.csv")).drop(skipPoints).map {
+            Vector2(it["x"]!!.toDouble(), it["y"]!!.toDouble())
+        }
+        return pointsData
+    }
 
     private fun loadPoints(): List<Vector3> {
         val pointsData = csvReader().readAllWithHeader(File("offline-data/graph/corrected.csv")).drop(skipPoints).map {
@@ -44,7 +53,7 @@ class DataModel {
         return latlon.map { Spherical(it.x, it.y, 10.0).cartesian }
     }
     val points = loadPoints()
-
+    val latentPoints = loadLatentPoints()
 
     private fun loadArticleData(): List<ArticleData> {
         val entries = Gson().fromJson(FileReader(File("offline-data/graph/mapped-v2r1.json")), Array<Entry>::class.java)
@@ -126,6 +135,7 @@ class DataModel {
     val pointIndices = points.indices.map { Pair(points[it], it) }.associate { it }
 
     val activePointsChanged = Event<ActivePointsChangedEvent>()
+    val heroPointChanged = Event<HeroPointChangedEvent>()
 
     var lookAt = Vector3(0.0, 0.0, -10.0)
         set(value) {
@@ -135,10 +145,18 @@ class DataModel {
             }
         }
 
+    var heroPoint: Int? = null
+    set(value) {
+        if (field != value) {
+            heroPointChanged.trigger(HeroPointChangedEvent(field, value))
+            field = value
+        }
+    }
     var activePoints: List<Int> = emptyList()
         set(value) {
             if (field != value) {
                 activePointsChanged.trigger(ActivePointsChangedEvent(field, value))
+                heroPoint = value.firstOrNull()
                 field = value
             }
         }
@@ -146,11 +164,12 @@ class DataModel {
     var selectionRadius = 0.24
 
     fun findActivePoints(): List<Int> {
-
         require(data.size == points.size)
-
         return kdtree.findAllInRadius(lookAt, selectionRadius).sortedBy { it.distanceTo(lookAt) }.map {
             pointIndices[it] ?: error("point not found")
         }
     }
+
+
+
 }
