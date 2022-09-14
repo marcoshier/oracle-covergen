@@ -26,23 +26,28 @@ class ZoomLockWidget(val drawer: Drawer) : Animatable() {
 
     }
 
+    fun zoomUnlock() {
+        fadeOut()
+        zoomUnlockRequested.trigger(Unit)
+    }
+
     fun buttonDown(event: MouseEvent) {
         if (fade > 0.0) {
             if (event.position.distanceTo(Vector2(2880/2.0, 1920.0/2.0)) < 100.0) {
-                fadeOut()
-                zoomUnlockRequested.trigger(Unit)
-            } else {
-                println(event.position)
+                zoomUnlock()
             }
         }
     }
 
     fun draw() {
         updateAnimation()
-        drawer.isolated {
-            drawer.defaults()
-            drawer.fill = ColorRGBa.WHITE.opacify(fade)
-            drawer.circle(drawer.bounds.center, 30.0)
+        if (fade > 0.0) {
+            drawer.isolated {
+                drawer.defaults()
+                drawer.fill = ColorRGBa.WHITE.opacify(fade)
+                drawer.stroke = null
+                drawer.circle(drawer.bounds.center, 30.0)
+            }
         }
     }
 }

@@ -49,7 +49,7 @@ class Minimap(val drawer: Drawer) : Animatable() {
 
             for (path in circles) {
                 drawer.strokeWeight = 20.0
-                drawer.stroke = ColorRGBa.WHITE
+                drawer.stroke = ColorRGBa.WHITE.opacify(opacity)
                 drawer.path(path)
             }
         }
