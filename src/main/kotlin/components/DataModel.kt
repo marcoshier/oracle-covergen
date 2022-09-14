@@ -176,7 +176,7 @@ class DataModel() {
             return kdtree.findAllInRadius(lookAt, selectionRadius).sortedBy { it.distanceTo(lookAt) }.map {
                 pointIndices[it] ?: error("point not found")
             }.filter {
-                dateFilter.filter(it)
+                dateFilter.filter(it) && facultyFilter.filter(it)
             }
         }
     }

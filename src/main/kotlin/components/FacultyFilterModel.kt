@@ -30,7 +30,9 @@ class FilterState(val facultyName: String) : Animatable() {
 
 class FacultyFilterModel(dataModel: DataModel) {
 
-    var facultyList = dataModel.facultyToColor
+    val facultyList = dataModel.facultyToColor
+    val articleFaculties = dataModel.facultyIndexes
+
     val states:List<FilterState> = facultyList.map { FilterState(it.first) }
 
     val filterChanged = Event<Unit>()
@@ -52,5 +54,10 @@ class FacultyFilterModel(dataModel: DataModel) {
         for (state in states) {
             state.updateAnimation()
         }
+    }
+
+    fun filter(pointIndex: Int) : Boolean {
+        val visible = (0 until 8).filter { states[it].visible }
+        return articleFaculties[pointIndex] in visible
     }
 }

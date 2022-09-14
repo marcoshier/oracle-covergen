@@ -35,7 +35,10 @@ fun main() {
             val dateFilterModel = DateFilterModel(dataModel.years)
             val facultyFilter = FacultyFilter(drawer, facultyFilterModel)
 
+            // signs that we need to split things up
             dataModel.dateFilter = dateFilterModel
+            dataModel.facultyFilter = facultyFilterModel
+
             val dateFilter = DateFilter(drawer, dateFilterModel)
             val guides = SphericalGuides(drawer)
             val pointCloud = PointCloud(drawer, dataModel, facultyFilterModel, dateFilterModel)

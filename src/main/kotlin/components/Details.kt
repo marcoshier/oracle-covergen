@@ -279,7 +279,6 @@ class Details(val drawer: Drawer, val articleData: List<ArticleData>, val dataMo
                     drawer.imageFit(cb, dynamicRect)
                 }
 
-
                 if(cover.coverlay != null) {
                     cover.coverlay!!.draw(cover.coverlayOpacity)
                 }
