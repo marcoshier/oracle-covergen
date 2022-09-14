@@ -141,10 +141,5 @@ class QuaternionCamera : Extension {
 
     override fun afterDraw(drawer: Drawer, program: Program) {
         drawer.popTransforms()
-        drawer.isolated {
-            drawer.defaults()
-            drawer.text("charge: ${zoom.dragCharge}", 40.0, 40.0)
-            drawer.text("charge increment: ${zoom.dragChargeIncrement}", 40.0, 80.0)
-        }
     }
 }
