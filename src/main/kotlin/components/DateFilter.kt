@@ -18,7 +18,7 @@ import org.openrndr.shape.Rectangle
 
 class DateFilter(val drawer: Drawer, val model: DateFilterModel): Animatable(){
 
-    var fade = 0.0
+    var fade = 1.0
 
     var rect = Rectangle(((1920 / 2) * 3) - 60.0, drawer.height / 2.0 - 400.0, 40.0, 800.0)
     var rail = LineSegment(rect.center.x, rect.y, rect.center.x, rect.y + rect.height)
@@ -73,9 +73,9 @@ class DateFilter(val drawer: Drawer, val model: DateFilterModel): Animatable(){
     fun buttonUp(mouseEvent: MouseEvent) {
         if (mouseEvent.position in rect) {
             mouseEvent.cancelPropagation()
-
-            ::fade.animate(0.0, 400, Easing.QuadInOut, 3000)
         }
+
+        ::fade.animate(0.0, 400, Easing.QuadInOut, 3000)
         closestSelector = null
     }
 

@@ -125,15 +125,25 @@ class SectionWithQr(rect:Rectangle, direction: Int, var proxy: ColorBufferProxy)
         drawer.drawStyle.clip = animatedRect
 
 
-
         var qrSize = if(animatedRect.width > animatedRect.height) animatedRect.height else animatedRect.width
         if(proxy!!.state == ColorBufferProxy.State.LOADED) {
             proxy!!.colorBuffer?.let {
                 drawer.pushStyle()
-                drawer.drawStyle.colorMatrix = Matrix55.IDENTITY
+                drawer.drawStyle.colorMatrix = invert
                 it.filter(MinifyingFilter.LINEAR_MIPMAP_LINEAR, MagnifyingFilter.NEAREST)
                 drawer.imageFit(it, animatedRect.corner.x, animatedRect.corner.y,  qrSize, qrSize)
+                drawer.drawStyle.colorMatrix = Matrix55.IDENTITY
                 drawer.popStyle()
+
+                drawer.fill = ColorRGBa.WHITE
+                drawer.fontMap = loadFont(fontList[2].first, 12.5)
+                val rect = if(direction == 1 || direction == 3) Rectangle(animatedRect.width + animatedRect.x - qrSize + 8.0, animatedRect.y + 10.0, animatedRect.width - qrSize, animatedRect.height)
+                            else Rectangle(animatedRect.x + 8.0, animatedRect.y + qrSize + 10.0, animatedRect.width, animatedRect.height - qrSize)
+                drawer.writer {
+                    box = rect
+                    newLine()
+                    text("SCAN TO READ")
+                }
             }
         }
 

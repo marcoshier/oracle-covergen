@@ -10,6 +10,7 @@ class SelectorWidget(val drawer: Drawer) : Animatable() {
     var opacity = 1.0
 
     var radius = 200.0
+    val bigRadius = 700.0
 
 
     fun fadeIn() {
@@ -28,6 +29,11 @@ class SelectorWidget(val drawer: Drawer) : Animatable() {
             drawer.stroke = ColorRGBa.WHITE.opacify(opacity)
             drawer.strokeWeight = 3.0
             drawer.circle(drawer.bounds.center, radius)
+
+
+            drawer.stroke = ColorRGBa.WHITE.opacify(opacity * 0.5)
+            drawer.strokeWeight = 0.8
+            drawer.circle(drawer.bounds.center, bigRadius)
         }
     }
 }

@@ -14,7 +14,7 @@ import org.openrndr.shape.Rectangle
 
 class FacultyFilter(val drawer: Drawer, val model: FacultyFilterModel) : Animatable() {
 
-    var fade = 0.0
+    var fade = 1.0
     var facultyList = model.facultyList
 
     fun fadeOut() {
@@ -22,9 +22,9 @@ class FacultyFilter(val drawer: Drawer, val model: FacultyFilterModel) : Animata
         ::fade.animate(0.0, 500, Easing.QuadInOut)
     }
 
-    fun fadeIn() {
+    fun fadeIn(delay: Long = 0L) {
         cancel()
-        ::fade.animate(1.0, 500, Easing.QuadInOut)
+        ::fade.animate(1.0, 500, Easing.QuadInOut, delay)
     }
 
     fun dragged(mouseEvent: MouseEvent) {
@@ -40,11 +40,14 @@ class FacultyFilter(val drawer: Drawer, val model: FacultyFilterModel) : Animata
             if (mouseEvent.position in rectangle(i)) {
                 mouseEvent.cancelPropagation()
                 model.states[i].visible = !model.states[i].visible
+            } else {
+                fadeOut()
             }
         }
     }
 
     fun buttonUp(mouseEvent: MouseEvent) {
+        fadeIn(3000)
     }
 
 
@@ -78,7 +81,7 @@ class FacultyFilter(val drawer: Drawer, val model: FacultyFilterModel) : Animata
                 val textWidth = text.sumOf { font1.characterWidth(it) }
                 drawer.text(text, rf.corner.x + (rf.width - textWidth) / 2.0 - 4.0, rf.center.y + 12.5)
 
-                val tw = this@FacultyFilter.model.states[index].fade
+                val tw = this@FacultyFilter.model.states[index].fade * fade
                 drawer.fontMap = font2
                 drawer.text(name.take(name.indexOf("(") - 1).uppercase().take((name.length * tw).toInt()), rf.corner.x + rf.width + 10.0, rf.center.y + 10.0)
             }
