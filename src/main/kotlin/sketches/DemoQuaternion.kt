@@ -37,7 +37,7 @@ fun main() {
             val facultyFilter = FacultyFilter(drawer, facultyFilterModel)
 
             // signs that we need to split things up
-            val idleState = IdleState(60.0)
+            val idleState = IdleState(10.0)
             dataModel.dateFilter = dateFilterModel
             dataModel.facultyFilter = facultyFilterModel
 
@@ -57,7 +57,7 @@ fun main() {
                 zoomLock.draw()
                 miniDetails.draw()
                 touchPoints.draw()
-                facultyFilter.draw()
+                //facultyFilter.draw()
                 dateFilter.draw()
                 idleSmall.draw()
             }
@@ -81,6 +81,7 @@ fun main() {
                 zoomLock.buttonDown(it)
                 idleState.exitIdle()
                 dateFilter.buttonDown(it)
+                minimap.buttonDown(it)
             }
 
             mouse.buttonUp.listen {
@@ -168,7 +169,7 @@ fun main() {
             }
 
             minimap.minimapTouched.listen {
-                println("minimap touched")
+                qCamera.instantZoom()
             }
 
             //val g = extend(extendables.gui)
@@ -187,9 +188,9 @@ fun main() {
                 dateFilterModel.update()
                 idleController.update()
 
+                minimapView.draw()
                 smallScreenView.draw()
                 bigScreenView.draw()
-                minimapView.draw()
             }
         }
     }

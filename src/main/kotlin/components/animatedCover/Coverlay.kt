@@ -63,7 +63,6 @@ open class Section(val rect: Rectangle, val direction: Int = 0): Animatable() {
         animatedRect = dynamicRect(parentRect)
 
         drawer.run {
-            // mipmaps?
             isolated {
                 shadeStyle = LinearGradientOKLab(ColorRGBa.GRAY.toOKLABa().opacify(0.5), ColorRGBa.BLACK.toOKLABa().opacify(0.5), rotation = 90.0 * direction)
                 fill = ColorRGBa.WHITE
@@ -80,7 +79,7 @@ open class Section(val rect: Rectangle, val direction: Int = 0): Animatable() {
             1 -> Rectangle(rect.x + childWidth + 5.0, rect.y  + offset, rect.width - childWidth - 20.0, rect.height)
             2 -> Rectangle(rect.x, rect.y + childHeight  + offset, rect.width, rect.height - childHeight)
             3 -> Rectangle(rect.x + 5.0, rect.y + offset, rect.width - childWidth, rect.height)
-            4 -> Rectangle(rect.x + 5.0, rect.y  + offset, rect.width - childWidth, rect.height)
+            4 -> Rectangle(rect.x + 5.0, rect.y + 5.0, rect.width - childWidth, rect.height)
             else -> rect.offsetEdges(-10.0)
         }.offsetEdges(-5.0)
 
@@ -92,7 +91,7 @@ open class Section(val rect: Rectangle, val direction: Int = 0): Animatable() {
 
         drawer.writer {
             box = container
-            text(text.trimIndent())
+            text(direction.toString() + text.trimIndent())
         }
 
 
@@ -141,7 +140,7 @@ class SectionWithQr(rect:Rectangle, direction: Int, var proxy: ColorBufferProxy)
                             else Rectangle(animatedRect.x + 8.0, animatedRect.y + qrSize + 10.0, animatedRect.width, animatedRect.height - qrSize)
                 drawer.writer {
                     box = rect
-                    newLine()
+                    gaplessNewLine()
                     text("SCAN TO READ")
                 }
             }
@@ -153,7 +152,6 @@ class SectionWithQr(rect:Rectangle, direction: Int, var proxy: ColorBufferProxy)
 }
 
 class Coverlay(val drawer: Drawer, val proxy: ColorBufferProxy, val data: List<String>, val index: Int) {
-
 
     var subdivisionsLeft = data.size - 1
     var allSections = mutableListOf<Section>()

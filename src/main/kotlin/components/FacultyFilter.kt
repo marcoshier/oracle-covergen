@@ -15,16 +15,17 @@ import org.openrndr.shape.Rectangle
 class FacultyFilter(val drawer: Drawer, val model: FacultyFilterModel) : Animatable() {
 
     var fade = 1.0
+    var dummy = 0.0
     var facultyList = model.facultyList
 
     fun fadeOut() {
         cancel()
-        ::fade.animate(0.0, 500, Easing.QuadInOut)
+        ::fade.animate(0.0, 800, Easing.QuadInOut)
     }
 
-    fun fadeIn(delay: Long = 0L) {
+    fun fadeIn() {
         cancel()
-        ::fade.animate(1.0, 500, Easing.QuadInOut, delay)
+        ::fade.animate(1.0, 1000, Easing.QuadInOut)
     }
 
     fun dragged(mouseEvent: MouseEvent) {
@@ -36,18 +37,21 @@ class FacultyFilter(val drawer: Drawer, val model: FacultyFilterModel) : Animata
     }
 
     fun buttonDown(mouseEvent: MouseEvent) {
+        fadeOut()
         for (i in facultyList.indices) {
             if (mouseEvent.position in rectangle(i)) {
                 mouseEvent.cancelPropagation()
                 model.states[i].visible = !model.states[i].visible
-            } else {
-                fadeOut()
             }
         }
     }
 
     fun buttonUp(mouseEvent: MouseEvent) {
-        fadeIn(3000)
+        dummy = 0.0
+        ::dummy.cancel()
+        ::dummy.animate(1.0, 3000).completed.listen {
+            fadeIn()
+        }
     }
 
 

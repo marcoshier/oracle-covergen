@@ -19,7 +19,7 @@ class QuaternionCamera : Extension {
     var dragStart = Vector2(0.0, 0.0)
 
 
-    val minTravel = 700.0
+    val minTravel = 350.0
 
     var zoomOutStarted: Event<Unit> = Event()
     var zoomInStarted: Event<Unit> = Event()
@@ -75,6 +75,16 @@ class QuaternionCamera : Extension {
         }
     }
     val zoom = Zoom()
+
+
+    fun instantZoom() {
+        println(zoom.dragChargeIncrement)
+        if(!zoom.locked) {
+            zoom.dragChargeIncrement = 0.01
+            zoomLockStarted.trigger(Unit)
+            zoom.locked = true
+        }
+    }
 
 
     fun unlockZoom() {
