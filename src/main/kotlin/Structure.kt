@@ -77,6 +77,38 @@ class Structure(val gui: GUI) {
 
     }.addTo(gui, "Cells")
 
+    class ColumnContours {
+        @DoubleParameter("Thickness", 0.0, 20.0)
+        var thickness = 0.5
+
+        @DoubleParameter("Pen pressure", 0.0, 1.0)
+        var penPressure = 1.0
+
+        @DoubleParameter("Turbulence Amount", 0.0, 1.0)
+        var turbulenceAmount = 0.5
+
+        @DoubleParameter("Turbulence Scale", 0.001, 0.08)
+        var turbulenceScale = 0.001
+    }
+    val cc = ColumnContours().apply { addTo(gui, "ThickLine / Vertical") }
+
+    class RowContours {
+
+        @DoubleParameter("Thickness", 0.0, 20.0)
+        var thickness = 0.5
+
+        @DoubleParameter("Pen pressure", 0.0, 1.0)
+        var penPressure = 1.0
+
+        @DoubleParameter("Turbulence Amount", 0.0, 1.0)
+        var turbulenceAmount = 0.5
+
+        @DoubleParameter("Turbulence Scale", 0.001, 0.08)
+        var turbulenceScale = 0.001
+
+    }
+    val rc = RowContours().apply { addTo(gui, "Contour / Horizontal") }
+
     var width = structureSliders.width
     var height = structureSliders.height
 
@@ -125,7 +157,8 @@ class Structure(val gui: GUI) {
             }
             val vertebraePoints = generateVertebrae()
 
-            ThickLine(vertebraePoints, gui).apply {
+
+            ThickLine(vertebraePoints, cc, rc).apply {
                 writeVertebrae(palette, t)
                 drawVertebrae(drawer)
             }
@@ -143,7 +176,7 @@ class Structure(val gui: GUI) {
             }
             val spinePoints = generateSpines()
 
-            ThickLine(spinePoints, gui).apply {
+            ThickLine(spinePoints, cc, rc).apply {
                 writeColumn(palette, t)
                 drawColumn(drawer)
             }
@@ -153,6 +186,7 @@ class Structure(val gui: GUI) {
             // CELLS (only for 2d)
             if(dimensions < 2.1 && vertebraePoints.isNotEmpty() && cellSliders.corners > 0.0) {
                 drawer.isolated {
+                    drawer.shadeStyle = null
                     drawer.depthWrite = false
                     drawer.depthTestPass = DepthTestPass.ALWAYS
 

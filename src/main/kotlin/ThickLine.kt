@@ -7,38 +7,8 @@ import org.openrndr.math.Vector3
 import kotlin.math.PI
 import kotlin.math.cos
 
-class ThickLine(val columns: List<List<Vector3>>, val gui: GUI) {
+class ThickLine(val columns: List<List<Vector3>>, val columnContours: Structure.ColumnContours, val rowContours: Structure.RowContours) {
 
-    private var columnContours = object {
-
-        @DoubleParameter("Thickness", 0.0, 20.0)
-        var thickness = 0.5
-
-        @DoubleParameter("Pen pressure", 0.0, 1.0)
-        var penPressure = 1.0
-
-        @DoubleParameter("Turbulence Amount", 0.0, 1.0)
-        var turbulenceAmount = 0.5
-
-        @DoubleParameter("Turbulence Scale", 0.001, 0.08)
-        var turbulenceScale = 0.001
-
-    }.addTo(gui, "ThickLine / Vertical")
-    private var rowContours = object {
-
-        @DoubleParameter("Thickness", 0.0, 20.0)
-        var thickness = 0.5
-
-        @DoubleParameter("Pen pressure", 0.0, 1.0)
-        var penPressure = 1.0
-
-        @DoubleParameter("Turbulence Amount", 0.0, 1.0)
-        var turbulenceAmount = 0.5
-
-        @DoubleParameter("Turbulence Scale", 0.001, 0.08)
-        var turbulenceScale = 0.001
-
-    }.addTo(gui, "Contour / Horizontal")
 
     val heightSegments = columns.size
     val rotSegments =  columns[0].size

@@ -4,9 +4,6 @@ import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.easing.Easing
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
-import org.openrndr.extra.color.spaces.toOKLABa
-import org.openrndr.extra.noise.uniform
-import org.openrndr.extra.noise.value
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import org.openrndr.math.map
@@ -97,7 +94,7 @@ class PointCloud(val drawer: Drawer, dataModel: DataModel, val filterModel: Facu
         }
     }
 
-    private val shadeStyle = shadeStyle {
+    var shadeStyle = shadeStyle {
         fragmentPreamble = """
             in vec4 x_color;
         """.trimIndent()

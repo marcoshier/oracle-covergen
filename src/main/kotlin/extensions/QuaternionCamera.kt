@@ -20,6 +20,7 @@ class QuaternionCamera : Extension {
 
 
     val minTravel = 350.0
+    var maxZoomOut = 90.0
 
     var zoomOutStarted: Event<Unit> = Event()
     var zoomInStarted: Event<Unit> = Event()
@@ -78,7 +79,6 @@ class QuaternionCamera : Extension {
 
 
     fun instantZoom() {
-        println(zoom.dragChargeIncrement)
         if(!zoom.locked) {
             zoom.dragChargeIncrement = 0.01
             zoomLockStarted.trigger(Unit)
@@ -144,7 +144,7 @@ class QuaternionCamera : Extension {
     override fun beforeDraw(drawer: Drawer, program: Program) {
         zoom.update()
         drawer.pushTransforms()
-        val fov = (zoom.dragCharge * 76.0 + 12.0).coerceAtMost(90.0)
+        val fov = (zoom.dragCharge * 76.0 + 12.0).coerceAtMost(maxZoomOut)
         drawer.projection = perspective(fov, 2880.0/1920.0, 0.1, 50.0)
         drawer.view = orientation.matrix.matrix44
     }

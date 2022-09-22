@@ -1,6 +1,7 @@
-/*
 package demonstrator
 
+import animatedCover.Coverlay
+import animatedCover.Section
 import classes.Entry
 import com.github.doyaaaaaken.kotlincsv.client.CsvReader
 import com.google.gson.Gson
@@ -19,6 +20,7 @@ import org.openrndr.extra.fx.color.ColorMix
 import org.openrndr.extra.kdtree.kdTree
 import org.openrndr.extra.temporalblur.TemporalBlur
 import org.openrndr.ffmpeg.ScreenRecorder
+import org.openrndr.internal.colorBufferLoader
 import org.openrndr.math.Matrix55
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
@@ -26,8 +28,6 @@ import org.openrndr.math.transforms.transform
 import org.openrndr.shape.Rectangle
 import org.openrndr.shape.bounds
 import org.openrndr.shape.map
-import textSandbox.Coverlay
-import textSandbox.Section
 import java.io.File
 import java.io.FileReader
 import kotlin.math.PI
@@ -35,7 +35,7 @@ import kotlin.math.sin
 
 fun main() = application {
     configure {
-        width = 1000
+        width = 1540
         height = 1000
     }
     program {
@@ -74,7 +74,8 @@ fun main() = application {
 
         val overlays = entries.map {
             val initialFrame = Rectangle(0.0, 0.0, 540.0, 960.0)
-            val c = Coverlay(drawer, data = it, listOf(), 0)
+            val proxy = colorBufferLoader.loadFromUrl("file:offline-data/covers/png/${components.skipPoints + entries.indexOf(it)}.png")
+            val c = Coverlay(drawer, proxy, data = it, entries.indexOf(it))
             c.subdivide(Section(initialFrame))
             c.unfold()
             c
@@ -119,11 +120,10 @@ fun main() = application {
             }
         }
 
-*/
-/*        extend(ScreenRecorder()) {
+        extend(ScreenRecorder()) {
             maximumDuration = 15.0
             frameRate = 60
-        }*//*
+        }
 
 
         val anim = object: Animatable() {
@@ -175,8 +175,6 @@ fun main() = application {
             contentScale = 4.0
             trigger()
         }
-*/
-/*
         extend(Post()) {
             val cc = ColorCorrection()
             cc.gamma = 0.7
@@ -195,7 +193,7 @@ fun main() = application {
                 grayscale(1.0/3.0, 1.0/3.0, 1.0/3.0) * t + Matrix55.IDENTITY * (1.0-t)
             }
         }
-*//*
+
 
 
 
@@ -223,30 +221,30 @@ fun main() = application {
 
             drawer.shadeStyle = shadeStyle {
                 vertexTransform = """
-                    x_position.xy = x_position.xy*1.0 + i_position0.xy * p_morph + i_position1.xy * (1.0 - p_morph);                        
+                    x_position.xy = x_position.xy*1.0 + i_position0.xy * p_morph + i_position1.xy * (1.0 - p_morph);
                 """
 
                 fragmentTransform = """
                     //c_instance;
-                    
+
                     int i = c_instance % 32;
                     int j = (c_instance / 32)%32;
                     int k = c_instance / (32*32);
-                    
+
                     vec2 uv = va_texCoord0 / 32.0;
                     uv.x += i/32.0;
                     uv.y += j/32.0;
                     uv.y = 1.0 - uv.y;
-                    
+
                     float dx = abs(va_texCoord0.x-0.5);
                     float dy = abs(va_texCoord0.y-0.5);
 
                     float sdx = smoothstep(0.44,0.5, dx);
                     float sdy = smoothstep(0.44,0.5, dy);
-                                        
+
                     vec4 c = texture(p_tiles, vec3(uv, k));
-  
-                    
+
+
                     x_fill = c;
                 """.trimIndent()
 
@@ -261,8 +259,7 @@ fun main() = application {
             drawer.vertexBufferInstances(listOf(vb), listOf(transforms), DrawPrimitive.TRIANGLE_STRIP, nVertex)
             drawer.drawStyle.blendMode = BlendMode.BLEND
 
-            drawer.defaults()*/
-/*
+            drawer.defaults()
             if(imageState.activeIndex != -1) {
                 if (imageState.image != null) {
                     drawer.image(imageState.image!!, 1050.0, 0.0)
@@ -280,17 +277,16 @@ fun main() = application {
                         newLine()
                         text(overlays[imageState.activeIndex].data[0])
                     }
-                    overlays[imageState.activeIndex].draw(drawer)
+                    overlays[imageState.activeIndex].draw(1.0)
                 } catch(e:Throwable) {
 
 
                     e.printStackTrace()
                 }
-            }*//*
+            }
 
 
         }
     }
 
 }
-*/

@@ -1,9 +1,11 @@
+import components.skipPoints
 import kotlinx.coroutines.yield
 import org.openrndr.Program
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.extensions.Screenshots
+import org.openrndr.extra.color.presets.DARK_GREY
 import org.openrndr.extra.fx.distort.FluidDistort
 import org.openrndr.extra.fx.distort.Lenses
 import org.openrndr.extra.fx.distort.Perturb
@@ -12,6 +14,7 @@ import org.openrndr.extra.gui.addTo
 import org.openrndr.extra.parameters.DoubleParameter
 import org.openrndr.extra.parameters.IntParameter
 import org.openrndr.extra.timeoperators.TimeOperators
+import org.openrndr.ffmpeg.ScreenRecorder
 import org.openrndr.launch
 import org.openrndr.math.Vector2
 import org.openrndr.math.smoothstep
@@ -31,9 +34,8 @@ fun main() = application {
 
         var showTitle = false
         var showColorRamp = false
-        var coverSaver = false
 
-        val gui = GUI(baseColor = ColorRGBa.fromHex("#7a1414").shade(0.3))
+        val gui = GUI(baseColor = ColorRGBa.DARK_GREY.shade(0.3).opacify(0.4))
 
         val fxSliders = object {
 
@@ -137,6 +139,7 @@ fun main() = application {
         }
 
         //extend(ScreenRecorder())
+        extend(ScreenRecorder())
         extend(TimeOperators()) {
             track(ecosystem.lfo)
         }
@@ -144,33 +147,11 @@ fun main() = application {
         val g = extend(gui)
 
 
-        val s = extend(Screenshots())
-        if(coverSaver) {
-            showTitle = false
-            showColorRamp = false
-            val jsons = File("offline-data/resolved/json").walk().filter { it.isFile && it.extension == "json" }.drop(200530)
-
-            launch {
-                for (json in jsons) {
-                    g.loadParameters(json)
-                    s.apply {
-                        name = "data/generated/${json.nameWithoutExtension}.png"
-                        trigger()
-                    }
-
-                    for (z in 0 until 10) {
-                        yield()
-                    }
-                }
-
-                println("Finished")
-            }
-        }
-
         extend {
 
 
             g.visible = mouse.position.x < 200.0
+
 
             val palette = generatePalette()
             drawer.clear(palette[2][0])

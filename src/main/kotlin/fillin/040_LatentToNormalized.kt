@@ -40,6 +40,8 @@ fun main() {
             writer.write(normalized.joinToString(","))
             writer.newLine()
 
+
+
         }
     }
 

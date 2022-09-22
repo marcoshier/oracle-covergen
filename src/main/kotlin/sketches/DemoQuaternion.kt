@@ -1,11 +1,13 @@
 package sketches
 
 import components.*
+import documentation.resources.PointCloud
 import extensions.QuaternionCamera
 import org.openrndr.application
 import org.openrndr.extra.camera.Orbital
 import org.openrndr.extra.gui.GUI
 import org.openrndr.extra.timeoperators.LFO
+import org.openrndr.ffmpeg.ScreenRecorder
 import org.openrndr.math.*
 
 fun main() {
@@ -37,7 +39,7 @@ fun main() {
             val facultyFilter = FacultyFilter(drawer, facultyFilterModel)
 
             // signs that we need to split things up
-            val idleState = IdleState(10.0)
+            val idleState = IdleState(60.0)
             dataModel.dateFilter = dateFilterModel
             dataModel.facultyFilter = facultyFilterModel
 
@@ -57,7 +59,7 @@ fun main() {
                 zoomLock.draw()
                 miniDetails.draw()
                 touchPoints.draw()
-                //facultyFilter.draw()
+                facultyFilter.draw()
                 dateFilter.draw()
                 idleSmall.draw()
             }
@@ -72,7 +74,9 @@ fun main() {
             }
 
             val minimap = Minimap(drawer)
-            val minimapView = ViewBox(drawer, Vector2(14.0, height - 64.0), 128, 128) { minimap.draw() }
+            val minimapView = ViewBox(drawer, Vector2(14.0, height - 64.0), 128, 128) {
+                //minimap.draw()
+            }
 
 
             mouse.buttonDown.listen {
@@ -176,6 +180,7 @@ fun main() {
             //extend(TimeOperators()) { track(extendables.lfo) }
             //extend(extendables.orb)
 
+            extend(ScreenRecorder())
 
             idleState.startTimer()
 
