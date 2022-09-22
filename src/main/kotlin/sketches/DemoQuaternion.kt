@@ -7,7 +7,6 @@ import org.openrndr.application
 import org.openrndr.extra.camera.Orbital
 import org.openrndr.extra.gui.GUI
 import org.openrndr.extra.timeoperators.LFO
-import org.openrndr.ffmpeg.ScreenRecorder
 import org.openrndr.math.*
 
 fun main() {
@@ -75,7 +74,7 @@ fun main() {
 
             val minimap = Minimap(drawer)
             val minimapView = ViewBox(drawer, Vector2(14.0, height - 64.0), 128, 128) {
-                //minimap.draw()
+                minimap.draw()
             }
 
 
@@ -179,8 +178,6 @@ fun main() {
             //val g = extend(extendables.gui)
             //extend(TimeOperators()) { track(extendables.lfo) }
             //extend(extendables.orb)
-
-            extend(ScreenRecorder())
 
             idleState.startTimer()
 
