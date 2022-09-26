@@ -1,4 +1,4 @@
-package fillin
+ package fillin
 
 import com.google.gson.Gson
 import tools.normalizedVectorToMap
@@ -13,7 +13,8 @@ fun main() {
     File("offline-data/resolved/cover-normalized.csv").reader().forEachLine {
         val values = it.split(",").map { it.toDouble() }
         val map = normalizedVectorToMap(templateJson, values)
-        File("offline-data/resolved/json/${String.format("%06d", line)}.json").writeText(Gson().toJson(map))
+        println(map)
+        //File("offline-data/resolved/json/${String.format("%06d", line)}.json").writeText(Gson().toJson(map))
         line++
     }
 }

@@ -9,6 +9,8 @@ import org.openrndr.extra.proxyprogram.proxyApplication
 
 fun theProxyApp(parent: Application? = null): Program = proxyApplication(parent) {
     program {
+
+
         var c = ColorRGBa.RED
         var randomizeColor: () -> Unit by userProperties
         randomizeColor = {
@@ -21,6 +23,7 @@ fun theProxyApp(parent: Application? = null): Program = proxyApplication(parent)
             backgroundColor = null
         }
         extend {
+            println(drawer.bounds)
             drawer.fill = c
             drawer.circle(mouse.position, 50.0)
         }

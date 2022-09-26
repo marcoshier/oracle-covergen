@@ -1,5 +1,5 @@
 package fillin
 
-val protoJsonPath = "data/new-protovisuals/parameters"
+val protoJsonPath = "offline-data/new/parameters"
 val dimensions = 47
 val latentDimensions = 2

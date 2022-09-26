@@ -1,7 +1,6 @@
 package sketches
 
 import components.*
-import documentation.resources.PointCloud
 import extensions.QuaternionCamera
 import org.openrndr.application
 import org.openrndr.extra.camera.Orbital

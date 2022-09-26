@@ -125,12 +125,6 @@ class AnimatedCover(val frame: Rectangle, params: Extendables, val drawer: Drawe
         val cbs = ColorBuffers()
 
 
-        fun stateChanged(json: File) {
-            palette = generatePalette()
-            gui.loadParameters(json)
-        }
-
-
         fun draw(seconds: Double) {
             drawer.clear(palette[2][0])
 

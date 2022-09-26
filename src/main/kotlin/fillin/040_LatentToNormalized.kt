@@ -18,15 +18,16 @@ fun main() {
     builder.apply(interpreter)
     TFLITE_MINIMAL_CHECK(interpreter != null && !interpreter.isNull())
 
-    TFLITE_MINIMAL_CHECK(interpreter.AllocateTensors() == kTfLiteOk);
+    TFLITE_MINIMAL_CHECK(interpreter.AllocateTensors() == kTfLiteOk)
     System.out.println("=== Pre-invoke Interpreter State ===");
     //PrintInterpreterState(interpreter);
 
     File("offline-data/resolved/cover-normalized.csv").bufferedWriter().use { writer ->
 
-        File("offline-data/resolved/cover-latent.csv").reader().forEachLine {
+        File("offline-data/graph/cover-latent.csv").reader().forEachLine {
 
             val values = it.split(",").map { it.toDouble() }
+            println(values)
 
             val inputTensor = interpreter.typed_input_tensor_float(0)
             inputTensor.put(0, values[0].toFloat())
@@ -39,8 +40,6 @@ fun main() {
 
             writer.write(normalized.joinToString(","))
             writer.newLine()
-
-
 
         }
     }

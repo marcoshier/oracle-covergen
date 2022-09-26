@@ -53,7 +53,7 @@ val orxFeatures = setOf(
     "orx-shapes",
 //  "orx-syphon",
     "orx-temporal-blur",
-//  "orx-tensorflow",    
+    "orx-tensorflow",
     "orx-time-operators",
 //  "orx-timer",
     "orx-triangulation",
@@ -209,7 +209,7 @@ class Openrndr {
     val ormlVersion = libs.versions.orml.get()
 
     // choices are "orx-tensorflow-gpu", "orx-tensorflow"
-    val orxTensorflowBackend = "orx-tensorflow"
+    val orxTensorflowBackend = "orx-tensorflow-gpu"
 
     val os = if (project.hasProperty("targetPlatform")) {
         val supportedPlatforms = setOf("windows", "macos", "linux-x64", "linux-arm64")
@@ -246,7 +246,7 @@ class Openrndr {
         }
         dependencies {
             implementation("org.bytedeco:tensorflow-lite:2.8.0-1.5.7")
-            implementation("org.bytedeco:tensorflow-lite:2.8.0-1.5.7:linux-x86_64")
+            implementation("org.bytedeco:tensorflow-lite:2.8.0-1.5.7:windows-x86_64")
             runtimeOnly(openrndr("gl3"))
             runtimeOnly(openrndrNatives("gl3"))
             implementation(openrndr("openal"))

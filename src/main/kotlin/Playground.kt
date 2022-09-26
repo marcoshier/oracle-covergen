@@ -35,7 +35,7 @@ fun main() = application {
         var showTitle = false
         var showColorRamp = false
 
-        val gui = GUI(baseColor = ColorRGBa.DARK_GREY.shade(0.3).opacify(0.4))
+        val gui = GUI()
 
         val fxSliders = object {
 

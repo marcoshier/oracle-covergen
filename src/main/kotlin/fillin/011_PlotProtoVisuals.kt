@@ -15,7 +15,7 @@ fun main() = application {
     program {
         val points = mutableListOf<Vector2>()
 
-        File("offline-data/resolved/proto-latent.csv").reader().forEachLine {
+        File("offline-data/graph/proto-latent.csv").reader().forEachLine {
             val v = it.split(",").map { it.toDouble() }
             points.add(Vector2(v[0], v[1]))
         }
