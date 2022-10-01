@@ -9,6 +9,7 @@ class IdleController(val camera: QuaternionCamera, val dataModel:DataModel) : An
 
     var active = false
 
+
     fun start() {
         active = true
     }
@@ -21,10 +22,18 @@ class IdleController(val camera: QuaternionCamera, val dataModel:DataModel) : An
     var rotY = 0.1
     var dummy = 0.0
 
+    var counter = 0
+
     fun update() {
         updateAnimation()
 
         if (!hasAnimations()) {
+
+            counter ++
+            if(counter > 4) {
+                camera.instantZoom()
+                counter = 0
+            }
             ::rotX.animate(Double.uniform(-0.1, 0.1), 100)
             ::rotY.animate(Double.uniform(-0.1, 0.1), 100)
             ::rotY.complete()
@@ -34,7 +43,6 @@ class IdleController(val camera: QuaternionCamera, val dataModel:DataModel) : An
             ::rotY.animate(0.0, 100).completed.listen {
 
                 if (dataModel.activePoints.isNotEmpty()) {
-
                     ::dummy.animate(1.0, Int.uniform(5000, 8000).toLong())
                     ::dummy.complete()
                 } else {

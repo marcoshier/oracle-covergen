@@ -45,11 +45,11 @@ class DataModel() {
     }
 
     private fun loadPoints(): List<Vector3> {
-        val pointsData = csvReader().readAllWithHeader(File("offline-data/graph/corrected.csv")).drop(skipPoints).map {
+        val pointsData = csvReader().readAllWithHeader(File("offline-data/graph/corrected-15.csv")).drop(skipPoints).map {
             Vector2(it["x"]!!.toDouble(), it["y"]!!.toDouble())
         }
         val bounds = pointsData.bounds
-        val llbounds = Rectangle(-180.0, 0.0, 360.0, 180.0)
+        val llbounds = Rectangle(-240.0, 10.0, 480.0, 160.0)
         val latlon = pointsData.map { it.map(bounds, llbounds) }
 
 
@@ -112,6 +112,7 @@ class DataModel() {
             correctedFaculty
         }
 
+
         val indexes = correctedFaculties.mapIndexed { i, it ->
             if(it != null) {
                 facultyNames.indexOf(it)
@@ -119,6 +120,7 @@ class DataModel() {
                 8
             }
         }
+
 
         return indexes
     }

@@ -83,6 +83,8 @@ class QuaternionCamera : Extension {
             zoom.dragChargeIncrement = 0.01
             zoomLockStarted.trigger(Unit)
             zoom.locked = true
+        } else {
+            unlockZoom()
         }
     }
 
@@ -99,7 +101,6 @@ class QuaternionCamera : Extension {
                 buttonDown = true
                 zoom.cancel()
                 dragStart = it.position
-                program.window.requestDraw()
             }
         }
 
@@ -120,7 +121,7 @@ class QuaternionCamera : Extension {
 
                     val distance = (it.position - dragStart).length
                     if (distance > minTravel) {
-                        zoom.dragChargeIncrement = (distance - minTravel) / 100000.0
+                        zoom.dragChargeIncrement = 2.0 * (distance - minTravel) / 100000.0
                     }
                     zoom.cancel()
 

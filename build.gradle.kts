@@ -84,6 +84,10 @@ enum class Logging { NONE, SIMPLE, FULL }
 
 val applicationLogging = Logging.FULL
 
+application {
+    applicationDefaultJvmArgs = listOf("-Dprod")
+}
+
 // ------------------------------------------------------------------------------------------------------------------ //
 
 plugins {
