@@ -2,11 +2,13 @@ package sketches
 
 import components.*
 import extensions.QuaternionCamera
+import org.openrndr.PresentationMode
 import org.openrndr.application
 import org.openrndr.extra.camera.Orbital
 import org.openrndr.extra.gui.GUI
 import org.openrndr.extra.timeoperators.LFO
 import org.openrndr.math.*
+import java.time.LocalDateTime
 
 fun main() {
     application {
@@ -24,10 +26,12 @@ fun main() {
                 position = IntVector2(0, 0)
                 hideWindowDecorations = true
                 hideCursor = true
+                windowAlwaysOnTop = true
             }
         }
 
         program {
+
             val dataModel = DataModel()
 
             val extendables = Extendables()
@@ -72,9 +76,7 @@ fun main() {
             }
 
             val minimap = Minimap(drawer)
-            val minimapView = ViewBox(drawer, Vector2(14.0, height - 64.0), 128, 128) {
-                minimap.draw()
-            }
+            val minimapView = ViewBox(drawer, Vector2(14.0, height - 128.0), 128, 128) { minimap.draw() }
 
 
             mouse.buttonDown.listen {
@@ -83,7 +85,6 @@ fun main() {
                 zoomLock.buttonDown(it)
                 idleState.exitIdle()
                 dateFilter.buttonDown(it)
-                minimap.buttonDown(it)
             }
 
             mouse.buttonUp.listen {
@@ -91,6 +92,7 @@ fun main() {
                 dateFilter.buttonUp(it)
                 facultyFilter.buttonUp(it)
                 idleState.startTimer()
+                minimap.buttonDown(it)
             }
 
             mouse.dragged.listen {
@@ -178,9 +180,14 @@ fun main() {
             //extend(TimeOperators()) { track(extendables.lfo) }
             //extend(extendables.orb)
 
+
             idleState.startTimer()
 
             extend {
+                window.presentationMode = if (LocalDateTime.now().hour >= 22) PresentationMode.MANUAL else
+                    PresentationMode.AUTOMATIC
+
+
                 //g.visible = false
                 //qCamera.enabled = false
 
@@ -189,9 +196,11 @@ fun main() {
                 dateFilterModel.update()
                 idleController.update()
 
-                minimapView.draw()
                 smallScreenView.draw()
                 bigScreenView.draw()
+                minimapView.draw()
+
+
             }
         }
     }

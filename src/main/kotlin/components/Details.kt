@@ -121,7 +121,7 @@ class Details(val drawer: Drawer, val dataModel: DataModel, val extendables: Ext
                     c::width.cancel()
                     c::height.cancel()
                     c::dummy.cancel()
-                    c::width.animate(1.0, 1500, Easing.CubicInOut)
+                    c::width.animate(0.0, 1500, Easing.CubicInOut)
                     c::height.animate(0.0, 1500, Easing.CubicInOut)
                     c::dummy.animate(1.0, 1500).completed.listen {
                         c.removing = false
@@ -163,7 +163,7 @@ class Details(val drawer: Drawer, val dataModel: DataModel, val extendables: Ext
 
 
                 cover.image = cover.proxy?.colorBuffer
-                cover.width = 50.0
+                cover.width = 100.0
                 cover.apply {
                     cover::x.cancel()
                     cover::y.cancel()
@@ -171,7 +171,7 @@ class Details(val drawer: Drawer, val dataModel: DataModel, val extendables: Ext
                     cover.x = position.x
                     cover.y = position.y
                     cover::height.cancel()
-                    cover::height.animate(50.0, 500, Easing.CubicInOut)
+                    cover::height.animate(100.0, 500, Easing.CubicInOut)
                 }
             }
 
@@ -207,7 +207,7 @@ class Details(val drawer: Drawer, val dataModel: DataModel, val extendables: Ext
             var line = 0
 
             for (k in dataModel.activePoints) {
-                drawer.text("$k - ${dataModel.data[k].title}", 40.0, line * 20.0 + 40.0)
+                drawer.text("${dataModel.data[k].title}", 40.0, line * 20.0 + 40.0)
                 line++
             }
         }

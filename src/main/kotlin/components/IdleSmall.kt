@@ -35,7 +35,7 @@ class IdleSmall(val drawer: Drawer): Animatable() {
 
             fill = ColorRGBa.WHITE
             fontMap = loadFont(fontList[3].first, 40.0)
-            text(message.take((fade * message.length).toInt()), 30.0, drawer.height - 50.0)
+            text(message.uppercase().take((fade * message.length).toInt()), 20.0, 36.0)
         }
     }
 }
