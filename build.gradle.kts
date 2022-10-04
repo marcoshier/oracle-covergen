@@ -38,7 +38,7 @@ val orxFeatures = setOf(
 //  "orx-minim",
 //  "orx-no-clear",
     "orx-noise",
-//  "orx-obj-loader",
+    "orx-obj-loader",
     "orx-olive",
 //  "orx-osc",
     "orx-palette",

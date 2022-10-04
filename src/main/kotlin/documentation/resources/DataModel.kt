@@ -47,7 +47,7 @@ class DataModel: Animatable() {
         return pointsData
     }
 
-    private fun loadPoints(): List<Vector3> {
+    fun loadPoints(): List<Vector3> {
         val pointsData = csvReader().readAllWithHeader(File("offline-data/graph/corrected.csv")).drop(skipPoints).map {
             Vector2(it["x"]!!.toDouble(), it["y"]!!.toDouble())
         }
