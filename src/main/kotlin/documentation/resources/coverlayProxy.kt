@@ -12,6 +12,7 @@ import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.easing.Easing
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
+import org.openrndr.events.Event
 import org.openrndr.extra.camera.Orbital
 import org.openrndr.extra.color.spaces.toOKLABa
 import org.openrndr.extra.fx.distort.FluidDistort
@@ -138,15 +139,13 @@ class CoverlayBackground(val drawer: Drawer, var frame: Rectangle) {
 
 
         drawer.image(active)
-
-
         drawer.defaults()
     }
 }
 
 class CoverlayTextBoxes(val drawer: Drawer) {
 
-    lateinit var data: List<String>
+    var data = listOf("a","b","c","d","e", "f")
     var subdivisionsLeft = data.size - 1
     var allSections = mutableListOf<animatedCover.Section>()
     var currentDirection = 0
@@ -283,7 +282,6 @@ class CoverlayTextBoxes(val drawer: Drawer) {
     }
 
 
-
     fun subdivide(frame: animatedCover.Section) {
         if(currentDirection == 0) {
             initialFrame = frame.rect
@@ -302,7 +300,6 @@ class CoverlayTextBoxes(val drawer: Drawer) {
                 4 -> frame.rect.sub(0.0, 0.0, initialK, 1.0).movedBy(Vector2((1.0 - initialK) * frame.rect.width, 0.0))
                 else -> frame.rect
             }.also {
-                println(subdivisionsLeft)
 
                 val newSect = if(subdivisionsLeft != 1) animatedCover.Section(it, currentDirection) else {
                     val proxy = colorBufferLoader.loadFromUrl("file:offline-data/qrs/${data[data.size - 1].toInt() + components.skipPoints}.png")
@@ -362,6 +359,7 @@ class CoverlayTextBoxes(val drawer: Drawer) {
 fun coverlayProxy(parent: Application? = null): Program = proxyApplication(parent) {
     program {
 
+
         this.width = 563
         this.height = 1000
         val frame = Rectangle(Vector2.ZERO, 563.0, 1000.0)
@@ -369,11 +367,17 @@ fun coverlayProxy(parent: Application? = null): Program = proxyApplication(paren
         val background = CoverlayBackground(drawer, frame)
         val textOverlay = CoverlayTextBoxes(drawer)
 
-
-        var passSliderValues: (json: String) -> Unit by userProperties
-        passSliderValues = {
-            background.sliders.update(it)
+        var coverData: (json: String, data: List<String>?) -> Unit by userProperties
+        coverData = { json, data ->
+            println("changed 1")
+            background.sliders.update(json)
+            if(data != null) {
+                textOverlay.data = data
+                textOverlay.subdivide(Section(frame))
+                textOverlay.unfold()
+            }
         }
+
 
         val g = extend(background.gui)
         extend(TimeOperators()) {
@@ -384,6 +388,7 @@ fun coverlayProxy(parent: Application? = null): Program = proxyApplication(paren
             g.visible = false
 
             background.draw(seconds)
+            textOverlay.draw(1.0)
 
         }
     }

@@ -2,6 +2,8 @@ package documentation
 
 import animatedCover.opacify
 import com.google.gson.Gson
+import documentation.resources.ArticleData
+import documentation.resources.DataModel
 import documentation.resources.coverlayProxy
 import documentation.resources.coverlayResources.labels
 import fillin.TFLITE_MINIMAL_CHECK
@@ -45,6 +47,8 @@ fun main() = application {
 
     program {
 
+        val data = DataModel().data
+
         val templateJson = File("data/template.json").readText()
         val model: FlatBufferModel = FlatBufferModel.BuildFromFile("data/models/decoder.tflite")
         fun interpreter(): Interpreter {
@@ -64,7 +68,7 @@ fun main() = application {
 
 
         val proxyProgram = coverlayProxy(application)
-        var passSliderValues: ((json: String) -> Unit) by proxyProgram.userProperties
+        var coverData: (json: String, data: ArticleData?) -> Unit by proxyProgram.userProperties
         val rt = renderTarget(563, 1000) {
             colorBuffer()
             depthBuffer()
@@ -86,7 +90,6 @@ fun main() = application {
 
             return normalized
         }
-
 
         var normalizedSliderValues = outputNormalizedValues(programState.pos).map { it.toDouble() }
 
@@ -117,7 +120,7 @@ fun main() = application {
 
                         val json = Gson().toJson(map)
 
-                        passSliderValues(json)
+                        coverData(json, null)
                     }
                 }
             }
@@ -157,16 +160,16 @@ fun main() = application {
         }
         val sliders = slidersGrid.take(47).mapIndexed { i, it -> Slider(it, labels[i]) }
 
+        /*
+                val latentGrid = loadImage("data/latentSpace.jpg")
 
-        val latentGrid = loadImage("data/latentSpace.jpg")
-
-        extend(ScreenRecorder())
-        extend(stage = ExtensionStage.AFTER_DRAW) {
-            drawer.defaults()
-            drawer.drawStyle.blendMode = BlendMode.ADD
-            drawer.image(latentGrid, 50.0, 600.0, 350.0, 350.0)
-            drawer.drawStyle.blendMode = BlendMode.BLEND
-        }
+                extend(ScreenRecorder())
+                extend(stage = ExtensionStage.AFTER_DRAW) {
+                    drawer.defaults()
+                    drawer.drawStyle.blendMode = BlendMode.ADD
+                    drawer.image(latentGrid, 50.0, 600.0, 350.0, 350.0)
+                    drawer.drawStyle.blendMode = BlendMode.BLEND
+                }*/
         extend(cm)
         extend {
             drawer.defaults()
@@ -212,13 +215,15 @@ fun findExtremes(): Pair<Vector2, Vector2>{
 
     File("offline-data/graph/cover-latent.csv").reader().forEachLine { string ->
 
-        val v = string.split(",").map { it.toDouble() }
+        if(!string.contains("x")) {
+            val v = string.split(",").map { it.toDouble() }
 
-        minValue0 = min(v[0], minValue0)
-        minValue1 = min(v[1], minValue1)
+            minValue0 = min(v[0], minValue0)
+            minValue1 = min(v[1], minValue1)
 
-        maxValue0 = max(v[0], maxValue0)
-        maxValue1 = max(v[1], maxValue1)
+            maxValue0 = max(v[0], maxValue0)
+            maxValue1 = max(v[1], maxValue1)
+        }
     }
 
     return Pair(Vector2(minValue0, maxValue0), Vector2(minValue1, maxValue1))

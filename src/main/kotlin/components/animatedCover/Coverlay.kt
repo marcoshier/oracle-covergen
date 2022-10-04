@@ -40,6 +40,7 @@ open class Section(val rect: Rectangle, val direction: Int = 0): Animatable() {
     }
 
     fun unfold(index: Int) {
+        cancel()
         animate(::k, 0.0, 0).completed.listen {
             currentIndex = index
             val delay = (index * 300).toLong()

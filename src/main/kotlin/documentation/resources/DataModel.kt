@@ -29,8 +29,6 @@ class HeroPointChangedEvent(val oldPoint: Int?, val newPoint: Int?)
 const val skipPoints = 142082
 
 class ArticleData(val title: String, val author:String, val faculty:String, val department: String, val date:String) {
-
-
     fun toList():List<String> {
         return listOf(title, author, faculty, department, date)
     }

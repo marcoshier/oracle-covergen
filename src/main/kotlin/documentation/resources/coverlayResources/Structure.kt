@@ -91,6 +91,7 @@ class Structure(val drawer: Drawer, val sliders: Sliders) {
                 drawer.isolated {
                     drawer.depthWrite = false
                     drawer.depthTestPass = DepthTestPass.ALWAYS
+                    drawer.shadeStyle = null
 
                     when (sliders.cellSliders.cellType) {
                         0 -> drawer.circles {

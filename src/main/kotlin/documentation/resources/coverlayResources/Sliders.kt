@@ -201,9 +201,8 @@ class Sliders(val gui: GUI) {
     val rowContours = RowContours()
 
     fun update(json: String) {
-
         gui.loadParameters(json)
-        println("yes $json")
+        println("yes")
     }
 
 
