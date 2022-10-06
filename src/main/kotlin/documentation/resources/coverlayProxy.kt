@@ -1,37 +1,31 @@
 package documentation.resources
 
-import animatedCover.Section
-import animatedCover.SectionWithQr
 import animatedCover.fontList
-import animatedCover.opacify
 import documentation.resources.coverlayResources.Ecosystem
 import documentation.resources.coverlayResources.Sliders
+
 import org.openrndr.Application
 import org.openrndr.Program
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.easing.Easing
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
-import org.openrndr.events.Event
 import org.openrndr.extra.camera.Orbital
 import org.openrndr.extra.color.spaces.toOKLABa
 import org.openrndr.extra.fx.distort.FluidDistort
 import org.openrndr.extra.fx.distort.Lenses
 import org.openrndr.extra.fx.distort.Perturb
 import org.openrndr.extra.gui.GUI
-import org.openrndr.extra.imageFit.imageFit
-import org.openrndr.extra.noise.uniform
 import org.openrndr.extra.proxyprogram.proxyApplication
+import org.openrndr.extra.shadestyles.LinearGradient
 import org.openrndr.extra.shadestyles.LinearGradientOKLab
 import org.openrndr.extra.timeoperators.LFO
 import org.openrndr.extra.timeoperators.TimeOperators
 import org.openrndr.internal.colorBufferLoader
-import org.openrndr.math.Matrix55
-import org.openrndr.math.Vector2
-import org.openrndr.math.Vector3
-import org.openrndr.math.smoothstep
+import org.openrndr.math.*
 import org.openrndr.poissonfill.PoissonFill
 import org.openrndr.shape.Rectangle
+import java.io.File
 
 class CoverlayBackground(val drawer: Drawer, var frame: Rectangle) {
 
@@ -143,68 +137,60 @@ class CoverlayBackground(val drawer: Drawer, var frame: Rectangle) {
     }
 }
 
-class CoverlayTextBoxes(val drawer: Drawer) {
 
-    var data = listOf("a","b","c","d","e", "f")
-    var subdivisionsLeft = data.size - 1
-    var allSections = mutableListOf<animatedCover.Section>()
-    var currentDirection = 0
+open class Section(val drawer: Drawer, val text: String?, val rect: Rectangle, val direction: Int = 0): Animatable() {
 
-    private val initialK = 0.575 // Space for title
-    private var initialFrame = Rectangle.EMPTY
+    var currentIndex = 0
+    var animatedRect = rect
+    var k = 0.0
+    var font = loadFont(fontList[direction].first, fontList[direction].second)
 
 
-    open class Section(val rect: Rectangle, val direction: Int = 0): Animatable() {
+    fun fold(index: Int) {
+        animate(::k, 1.0, 0).completed.listen {
+            currentIndex = index
+            animate(::k, 0.0, 900, Easing.CubicInOut)
+        }
+    }
 
-        var currentIndex = 0
-        var animatedRect = rect
-        var k = 0.0
-        var font = loadFont(fontList[direction].first, fontList[direction].second)
+    fun unfold(index: Int) {
+        animate(::k, 0.0, 0).completed.listen {
+            currentIndex = index
+            animate(::k, 1.0, 1000, Easing.CubicInOut, predelayInMs = index * 200L)
+        }
+    }
 
+    private fun animatedRectangle(p: Rectangle): Rectangle {
+        return when(direction) {
+            1 -> Rectangle(p.x, rect.y + (rect.height * (1.0 - k)), p.width, rect.height * k)
+            2 -> Rectangle(p.x, p.y, rect.width * k, p.height)
+            3 -> Rectangle(p.x, p.y, p.width, rect.height * k)
+            4 -> Rectangle(p.x + p.width - (rect.width * k), p.y, rect.width * k, p.height)
+            else -> rect
+        }
+    }
 
-        fun fold(index: Int) {
-            animate(::k, 1.0, 0).completed.listen {
-                currentIndex = index
-                animate(::k, 0.0, 900, Easing.CubicInOut)
+    open fun draw(parent: Rectangle, child: Rectangle?) {
+        updateAnimation()
+
+        animatedRect = animatedRectangle(parent)
+
+        drawer.fill = ColorRGBa.WHITE
+        drawer.run {
+            isolated {
+                shadeStyle = LinearGradient(ColorRGBa.GRAY.opacify(0.5), ColorRGBa.BLACK.opacify(0.5), rotation = 90.0 * direction)
+                stroke = null
+                drawStyle.blendMode = BlendMode.MULTIPLY
+                rectangle(animatedRect)
             }
         }
 
-        fun unfold(index: Int) {
-            animate(::k, 0.0, 0).completed.listen {
-                currentIndex = index
-                val delay = (index * 300).toLong()
-                animate(::k, 1.0, 1000, Easing.CubicInOut, predelayInMs = 400 + delay)
-            }
-        }
 
-        fun dynamicRect(parent: Rectangle): Rectangle {
-            return when(direction) {
-                1 -> rect.scaledBy(1.0, k, 1.0, 1.0).widthScaledTo(parent.width).movedTo(Vector2(parent.x, parent.y + parent.height - animatedRect.height))
-                2 -> rect.scaledBy(k, 1.0, 0.0, 1.0).heightScaledTo(parent.height).movedTo(Vector2(parent.x, parent.y + parent.height - animatedRect.height))
-                3 -> rect.scaledBy(1.0, k, 0.0, 0.0).widthScaledTo(parent.width).movedTo(parent.corner)
-                4 -> rect.scaledBy(k, 1.0, 1.0, 1.0).heightScaledTo(parent.height).movedTo(Vector2(parent.x + parent.width - animatedRect.width, parent.y))
-                else -> rect
-            }
-        }
-
-        open fun draw(drawer: Drawer, parentRect: Rectangle, childRect: Rectangle?, text: String) {
-
-            updateAnimation()
-            animatedRect = dynamicRect(parentRect)
-
-            drawer.run {
-                isolated {
-                    shadeStyle = LinearGradientOKLab(ColorRGBa.GRAY.toOKLABa().opacify(0.5), ColorRGBa.BLACK.toOKLABa().opacify(0.5), rotation = 90.0 * direction)
-                    fill = ColorRGBa.WHITE
-                    drawStyle.blendMode = BlendMode.MULTIPLY
-                    stroke = null
-                    rectangle(animatedRect)
-                }
-            }
+        if(text != null) {
 
             val offset = 20.0
-            val childWidth = childRect?.width ?: 0.0
-            val childHeight = childRect?.height ?: 0.0
+            val childWidth = child?.width ?: 0.0
+            val childHeight = child?.height ?: 0.0
             val container = when (direction) {
                 1 -> Rectangle(rect.x + childWidth + 5.0, rect.y  + offset, rect.width - childWidth - 20.0, rect.height)
                 2 -> Rectangle(rect.x, rect.y + childHeight  + offset, rect.width, rect.height - childHeight)
@@ -213,183 +199,231 @@ class CoverlayTextBoxes(val drawer: Drawer) {
                 else -> rect.offsetEdges(-10.0)
             }.offsetEdges(-5.0)
 
-
-            drawer.drawStyle.clip = animatedRect
-
-            drawer.fill = ColorRGBa.WHITE.opacify(k)
-            drawer.fontMap = font
-
-            drawer.writer {
-                box = container
-                text(direction.toString() + text.trimIndent())
-            }
-
-
-            drawer.drawStyle.clip = null
-        }
-
-    }
-
-    class SectionWithQr(rect:Rectangle, direction: Int, var proxy: ColorBufferProxy): Section(rect, direction) {
-
-        override fun draw(drawer: Drawer, parentRect: Rectangle, childRect: Rectangle?, text: String) {
-            proxy?.touch()
-            proxy?.priority = 0
-
-            updateAnimation()
-            animatedRect = dynamicRect(parentRect)
-
             drawer.run {
-                // mipmaps?
-                isolated {
-                    shadeStyle = LinearGradientOKLab(ColorRGBa.GRAY.toOKLABa().opacify(0.5), ColorRGBa.BLACK.toOKLABa().opacify(0.5), rotation = 90.0 * direction)
-
-                    fill = ColorRGBa.WHITE
-                    drawStyle.blendMode = BlendMode.MULTIPLY
-                    stroke = null
-                    rectangle(animatedRect)
+                drawStyle.clip = animatedRect
+                fontMap = font
+                writer {
+                    box = container
+                    text(text.trimIndent())
                 }
+                drawStyle.clip = null
             }
-
-            drawer.drawStyle.clip = animatedRect
-
-
-            var qrSize = if(animatedRect.width > animatedRect.height) animatedRect.height else animatedRect.width
-            if(proxy!!.state == ColorBufferProxy.State.LOADED) {
-                proxy!!.colorBuffer?.let {
-                    drawer.pushStyle()
-                    drawer.drawStyle.colorMatrix = invert
-                    it.filter(MinifyingFilter.LINEAR_MIPMAP_LINEAR, MagnifyingFilter.NEAREST)
-                    drawer.imageFit(it, animatedRect.corner.x, animatedRect.corner.y,  qrSize, qrSize)
-                    drawer.drawStyle.colorMatrix = Matrix55.IDENTITY
-                    drawer.popStyle()
-
-                    drawer.fill = ColorRGBa.WHITE
-                    drawer.fontMap = loadFont(fontList[2].first, 12.5)
-                    val rect = if(direction == 1 || direction == 3) Rectangle(animatedRect.width + animatedRect.x - qrSize + 8.0, animatedRect.y + 10.0, animatedRect.width - qrSize, animatedRect.height)
-                    else Rectangle(animatedRect.x + 8.0, animatedRect.y + qrSize + 10.0, animatedRect.width, animatedRect.height - qrSize)
-                    drawer.writer {
-                        box = rect
-                        gaplessNewLine()
-                        text("SCAN TO READ")
-                    }
-                }
-            }
-
-
-            drawer.drawStyle.clip = null
         }
     }
 
+}
 
-    fun subdivide(frame: animatedCover.Section) {
-        if(currentDirection == 0) {
-            initialFrame = frame.rect
-            currentDirection = 1
+class SectionWithQr(drawer: Drawer, rect:Rectangle, direction: Int, var proxy: ColorBufferProxy): Section(drawer, null, rect, direction) {
+
+    override fun draw(parent: Rectangle, child: Rectangle?)  {
+/*        proxy?.touch()
+        proxy?.priority = 0
+
+        updateAnimation()
+        animatedRect = dynamicRect(parent)
+
+        drawer.run {
+            // mipmaps?
+            isolated {
+                shadeStyle = LinearGradientOKLab(ColorRGBa.GRAY.toOKLABa().opacify(0.5), ColorRGBa.BLACK.toOKLABa().opacify(0.5), rotation = 90.0 * direction)
+
+                fill = ColorRGBa.WHITE
+                drawStyle.blendMode = BlendMode.MULTIPLY
+                stroke = null
+                rectangle(animatedRect)
+            }
         }
 
-        if(currentDirection > 4) {
-            currentDirection = 1
-        }
+        drawer.drawStyle.clip = animatedRect
 
-        if(data[currentDirection] != "") {
-            when(currentDirection) {
-                1 -> frame.rect.sub(0.0, 0.0, 1.0, 1.0 - initialK).movedBy(Vector2(0.0, initialK * frame.rect.height))
-                2 -> frame.rect.sub(0.0, 0.0, 1.0 - initialK, 1.0).movedBy(Vector2(0.0, 0.0))
-                3 -> frame.rect.sub(0.0, 0.0, 1.0, 1.0 - initialK).movedBy(Vector2(0.0, 0.0))
-                4 -> frame.rect.sub(0.0, 0.0, initialK, 1.0).movedBy(Vector2((1.0 - initialK) * frame.rect.width, 0.0))
-                else -> frame.rect
-            }.also {
 
-                val newSect = if(subdivisionsLeft != 1) animatedCover.Section(it, currentDirection) else {
-                    val proxy = colorBufferLoader.loadFromUrl("file:offline-data/qrs/${data[data.size - 1].toInt() + components.skipPoints}.png")
-                    animatedCover.SectionWithQr(it, currentDirection, proxy)
-                }
+        var qrSize = if(animatedRect.width > animatedRect.height) animatedRect.height else animatedRect.width
+        if(proxy!!.state == ColorBufferProxy.State.LOADED) {
+            proxy!!.colorBuffer?.let {
+                drawer.pushStyle()
+                drawer.drawStyle.colorMatrix = invert
+                it.filter(MinifyingFilter.LINEAR_MIPMAP_LINEAR, MagnifyingFilter.NEAREST)
+                drawer.imageFit(it, animatedRect.corner.x, animatedRect.corner.y,  qrSize, qrSize)
+                drawer.drawStyle.colorMatrix = Matrix55.IDENTITY
+                drawer.popStyle()
 
-                allSections.add(newSect)
-
-                subdivisionsLeft--
-                if(subdivisionsLeft > 0) {
-                    currentDirection++
-                    subdivide(newSect)
+                drawer.fill = ColorRGBa.WHITE
+                drawer.fontMap = loadFont(fontList[2].first, 12.5)
+                val rect = if(direction == 1 || direction == 3) Rectangle(animatedRect.width + animatedRect.x - qrSize + 8.0, animatedRect.y + 10.0, animatedRect.width - qrSize, animatedRect.height)
+                else Rectangle(animatedRect.x + 8.0, animatedRect.y + qrSize + 10.0, animatedRect.width, animatedRect.height - qrSize)
+                drawer.writer {
+                    box = rect
+                    gaplessNewLine()
+                    text("SCAN TO READ")
                 }
             }
         }
 
+
+        drawer.drawStyle.clip = null*/
+    }
+}
+
+class CoverlayTextBoxes(val drawer: Drawer, var initialFrame: Rectangle = drawer.bounds, private val k: Double = 0.575): Animatable() {
+
+    var data = listOf<String>()
+        set(value) {
+            val clean = value.filter { it != "" }
+            field = clean
+            subdivisionsLeft = clean.size - 1
+
+            subdivide(initialFrame)
+        }
+
+    var allSections = mutableListOf<Section>()
+    var subdivisionsLeft = 0
+    var currentDirection = 0
+
+    var fade = 0.0
+
+    private fun subdivide(parent: Rectangle) {
+        if(currentDirection > 4 || currentDirection == 0) {
+            currentDirection = 1
+        }
+
+        val i = (data.size - subdivisionsLeft + 1)
+
+        val newRect = when(currentDirection) {
+            1 -> Rectangle(parent.x, parent.y + parent.height * k, parent.width, parent.height * (1.0 - k))
+            2 -> Rectangle(parent.x, parent.y, parent.width * (1.0 - k), parent.height)
+            3 -> Rectangle(parent.x, parent.y, parent.width, parent.height * (1.0 - k))
+            4 -> Rectangle(parent.x + parent.width * k, parent.y, parent.width * (1.0 - k), parent.height)
+            else -> parent
+        }
+        val newSect = if(subdivisionsLeft != 1) Section(drawer, data[i], newRect, currentDirection) else {
+            val index = data[data.size - 1].toInt() + skipPoints
+            val proxy = colorBufferLoader.loadFromUrl("file:offline-data/qrs/$index.png")
+            SectionWithQr(drawer, newRect, currentDirection, proxy)
+        }
+
+        allSections.add(newSect)
+        subdivisionsLeft--
+
+        if(subdivisionsLeft > 0) {
+            currentDirection++
+            subdivide(newRect)
+        } else {
+            unfold()
+        }
     }
 
-    fun unfold() {
+    private fun unfold() {
+        ::fade.cancel()
+        ::fade.animate(1.0, 2500, Easing.SineOut)
+
         for((i, section) in allSections.withIndex()) {
             section.unfold(i)
         }
     }
 
-    fun fold() {
+    private fun fold() {
+        ::fade.cancel()
+        ::fade.animate(0.0, 2000, Easing.SineOut)
+
         for((i, section) in allSections.withIndex()) {
             section.fold(i)
         }
     }
 
-    var font = loadFont(fontList[0].first, fontList[0].second)
-    fun draw(opacity: Double = 0.0) {
 
-        drawer.drawStyle.clip = initialFrame
+    var titleFont = loadFont(fontList[0].first, fontList[0].second)
 
-        drawer.fill = ColorRGBa.WHITE
-        drawer.fontMap = font
-        drawer.writer {
-            box = initialFrame.offsetEdges(-20.0).scaledBy(0.64, 1.0, 0.0, 0.0)
-            gaplessNewLine()
-            val text = data[0]
-            text(text.take((text.length * opacity).toInt()))
-        }
+    fun draw() {
+        updateAnimation()
 
         allSections.forEachIndexed { i, section ->
-            val parent = if(i == 0) initialFrame else allSections[i - 1].animatedRect
+            val parent = allSections[(i - 1).coerceAtLeast(0)].animatedRect
             val child = if(i == allSections.size - 1) null else allSections[i + 1].animatedRect
-            section.draw(drawer, parent, child, data[i + 1])
+
+            section.draw(parent, child)
         }
 
-        drawer.drawStyle.clip = null
+        drawer.fontMap = titleFont
+        drawer.writer {
+            box = initialFrame.offsetEdges(-20.0).widthScaledBy(0.64)
+            gaplessNewLine()
+            val text = data[0]
+            text(text.take((text.length * fade).toInt()))
+        }
 
     }
-
 }
 
-fun coverlayProxy(parent: Application? = null): Program = proxyApplication(parent) {
-    program {
+class Coverlay(val drawer: Drawer, val frame: Rectangle): Animatable() {
 
+    var json: String? = null
+        set(value) {
+            field = value
+            if(value != null) {
+                background.sliders.update(value)
+            }
+        }
 
-        this.width = 563
-        this.height = 1000
-        val frame = Rectangle(Vector2.ZERO, 563.0, 1000.0)
-
-        val background = CoverlayBackground(drawer, frame)
-        val textOverlay = CoverlayTextBoxes(drawer)
-
-        var coverData: (json: String, data: List<String>?) -> Unit by userProperties
-        coverData = { json, data ->
-            println("changed 1")
-            background.sliders.update(json)
-            if(data != null) {
-                textOverlay.data = data
-                textOverlay.subdivide(Section(frame))
-                textOverlay.unfold()
+    var data: List<String>? = null
+        set(value) {
+            field = value
+            if(value != null) {
+                textOverlay = CoverlayTextBoxes(drawer, frame).apply {
+                    data = value
+                }
             }
         }
 
 
-        val g = extend(background.gui)
-        extend(TimeOperators()) {
-            track(background.lfo)
+    var background = CoverlayBackground(drawer, frame)
+    var textOverlay: CoverlayTextBoxes? = null
+
+    init {
+        if(json == null) {
+            background.sliders.update(File("data/template.json").readText())
         }
-        extend(background.orb)
+    }
+
+    fun draw(seconds: Double) {
+        background.draw(seconds)
+        textOverlay?.draw()
+    }
+
+}
+
+
+fun coverlayProxy(parent: Application? = null): Program = proxyApplication(parent) {
+    program {
+
+        this.width = 540
+        this.height = 960
+        val frame = Rectangle(Vector2.ZERO, 540.0, 960.0)
+
+        var coverlay = Coverlay(drawer, frame)
+
+        var coverData: (json: String, articleData: List<String>?) -> Unit by userProperties
+        coverData = { json, data ->
+            coverlay.json = json
+            coverlay.data = data
+        }
+
+
+        val g = extend(coverlay.background.gui)
+        extend(TimeOperators()) {
+            track(coverlay.background.lfo)
+        }
+        extend(coverlay.background.orb)
+
+
         extend {
             g.visible = false
 
-            background.draw(seconds)
-            textOverlay.draw(1.0)
+            coverlay.draw(seconds)
 
         }
     }
+}
+
+fun Rectangle.widthScaledBy(factor: Double): Rectangle {
+    return Rectangle(x, y, width * factor, height)
 }

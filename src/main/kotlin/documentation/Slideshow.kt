@@ -12,10 +12,13 @@ import org.bytedeco.tensorflowlite.FlatBufferModel
 import org.bytedeco.tensorflowlite.Interpreter
 import org.bytedeco.tensorflowlite.InterpreterBuilder
 import org.bytedeco.tensorflowlite.global.tensorflowlite
+import org.openrndr.KEY_SPACEBAR
 import org.openrndr.Program
 import org.openrndr.animatable.Animatable
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
+import org.openrndr.draw.BufferMultisample
+import org.openrndr.draw.colorBuffer
 import org.openrndr.draw.isolatedWithTarget
 import org.openrndr.draw.renderTarget
 import org.openrndr.extra.noise.Random
@@ -30,6 +33,7 @@ fun main() = application {
     configure {
         width = 540
         height = 960
+        hideWindowDecorations = true
     }
     program {
 
@@ -39,10 +43,11 @@ fun main() = application {
 
         val cover = coverlayProxy(application)
         var coverData: (json: String, data: List<String>?) -> Unit by cover.userProperties
-        val rt = renderTarget(540, 960) {
+        val rt = renderTarget(540, 960, multisample = BufferMultisample.SampleCount(16)) {
             colorBuffer()
             depthBuffer()
         }
+        val resolved = colorBuffer(width, height)
 
 
         class Controller: Animatable() {
@@ -53,9 +58,9 @@ fun main() = application {
                 if(index < jsons.size) {
                     index++
                     dummy = 0.0
-                    ::dummy.animate(1.0, 5000).completed.listen {
+                    ::dummy.animate(1.0, 10).completed.listen {
                         coverData(jsons[index], data[index].toList().filter { it != "" }.plus(index.toString()))
-                        start()
+                        //start()
                     }
                 } else {
                     application.exit()
@@ -64,18 +69,26 @@ fun main() = application {
         }
 
         val controller = Controller()
-        controller.start()
+
+        keyboard.keyUp.listen {
+            if(it.key == KEY_SPACEBAR) {
+                controller.start()
+            }
+        }
 
         extend {
             controller.updateAnimation()
-            drawer.defaults()
+            //drawer.defaults()
 
             drawer.isolatedWithTarget(rt) {
                 drawer.clear(ColorRGBa.TRANSPARENT)
                 cover.drawImpl()
             }
 
-            drawer.image(rt.colorBuffer(0))
+            drawer.defaults()
+            //drawer.scale(1.3)
+            rt.colorBuffer(0).copyTo(resolved)
+            drawer.image(resolved)
 
         }
     }
