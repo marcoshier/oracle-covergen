@@ -43,7 +43,7 @@ fun main() = application {
 
         val cover = coverlayProxy(application)
         var coverData: (json: String, data: List<String>?) -> Unit by cover.userProperties
-        val rt = renderTarget(540, 960, multisample = BufferMultisample.SampleCount(16)) {
+        val rt = renderTarget(540, 960, multisample = BufferMultisample.SampleCount(32)) {
             colorBuffer()
             depthBuffer()
         }
@@ -51,16 +51,16 @@ fun main() = application {
 
 
         class Controller: Animatable() {
-            var index = 0
+            var index = 1
             var dummy = 0.0
 
             fun start() {
                 if(index < jsons.size) {
+                    coverData(jsons[index], data[index].toList().filter { it != "" }.plus(index.toString()))
                     index++
                     dummy = 0.0
-                    ::dummy.animate(1.0, 10).completed.listen {
-                        coverData(jsons[index], data[index].toList().filter { it != "" }.plus(index.toString()))
-                        //start()
+                    ::dummy.animate(1.0, 10000).completed.listen {
+                        start()
                     }
                 } else {
                     application.exit()
@@ -70,12 +70,7 @@ fun main() = application {
 
         val controller = Controller()
 
-        keyboard.keyUp.listen {
-            if(it.key == KEY_SPACEBAR) {
-                controller.start()
-            }
-        }
-
+        controller.start()
         extend {
             controller.updateAnimation()
             //drawer.defaults()
@@ -86,7 +81,6 @@ fun main() = application {
             }
 
             drawer.defaults()
-            //drawer.scale(1.3)
             rt.colorBuffer(0).copyTo(resolved)
             drawer.image(resolved)
 
